@@ -1,0 +1,118 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\2025\\individual\\github\\MyGames\\MyGames\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{C33352A5-393F-41B8-BCE8-7A39A8EE134D}|MyGames.Desktop\\MyGames.Desktop.csproj|d:\\2025\\individual\\github\\mygames\\mygames\\mygames.desktop\\services\\chessgameservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C33352A5-393F-41B8-BCE8-7A39A8EE134D}|MyGames.Desktop\\MyGames.Desktop.csproj|solutionrelative:mygames.desktop\\services\\chessgameservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C33352A5-393F-41B8-BCE8-7A39A8EE134D}|MyGames.Desktop\\MyGames.Desktop.csproj|d:\\2025\\individual\\github\\mygames\\mygames\\mygames.desktop\\services\\httplistenerservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C33352A5-393F-41B8-BCE8-7A39A8EE134D}|MyGames.Desktop\\MyGames.Desktop.csproj|solutionrelative:mygames.desktop\\services\\httplistenerservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C33352A5-393F-41B8-BCE8-7A39A8EE134D}|MyGames.Desktop\\MyGames.Desktop.csproj|d:\\2025\\individual\\github\\mygames\\mygames\\mygames.desktop\\startup.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C33352A5-393F-41B8-BCE8-7A39A8EE134D}|MyGames.Desktop\\MyGames.Desktop.csproj|solutionrelative:mygames.desktop\\startup.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C33352A5-393F-41B8-BCE8-7A39A8EE134D}|MyGames.Desktop\\MyGames.Desktop.csproj|d:\\2025\\individual\\github\\mygames\\mygames\\mygames.desktop\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{C33352A5-393F-41B8-BCE8-7A39A8EE134D}|MyGames.Desktop\\MyGames.Desktop.csproj|solutionrelative:mygames.desktop\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C33352A5-393F-41B8-BCE8-7A39A8EE134D}|MyGames.Desktop\\MyGames.Desktop.csproj|d:\\2025\\individual\\github\\mygames\\mygames\\mygames.desktop\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C33352A5-393F-41B8-BCE8-7A39A8EE134D}|MyGames.Desktop\\MyGames.Desktop.csproj|solutionrelative:mygames.desktop\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 1,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedHeight": 1226,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "HttpListenerService.cs",
+              "DocumentMoniker": "D:\\2025\\individual\\github\\MyGames\\MyGames\\MyGames.Desktop\\Services\\HttpListenerService.cs",
+              "RelativeDocumentMoniker": "MyGames.Desktop\\Services\\HttpListenerService.cs",
+              "ToolTip": "D:\\2025\\individual\\github\\MyGames\\MyGames\\MyGames.Desktop\\Services\\HttpListenerService.cs",
+              "RelativeToolTip": "MyGames.Desktop\\Services\\HttpListenerService.cs",
+              "ViewState": "AgIAAGMAAAAAAAAAAAAUwGgAAAAyAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-17T06:04:44.644Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Startup.cs",
+              "DocumentMoniker": "D:\\2025\\individual\\github\\MyGames\\MyGames\\MyGames.Desktop\\Startup.cs",
+              "RelativeDocumentMoniker": "MyGames.Desktop\\Startup.cs",
+              "ToolTip": "D:\\2025\\individual\\github\\MyGames\\MyGames\\MyGames.Desktop\\Startup.cs",
+              "RelativeToolTip": "MyGames.Desktop\\Startup.cs",
+              "ViewState": "AgIAAHgAAAAAAAAAAAAAAIIAAABJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-17T05:59:30.121Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ChessGameService.cs",
+              "DocumentMoniker": "D:\\2025\\individual\\github\\MyGames\\MyGames\\MyGames.Desktop\\Services\\ChessGameService.cs",
+              "RelativeDocumentMoniker": "MyGames.Desktop\\Services\\ChessGameService.cs",
+              "ToolTip": "D:\\2025\\individual\\github\\MyGames\\MyGames\\MyGames.Desktop\\Services\\ChessGameService.cs",
+              "RelativeToolTip": "MyGames.Desktop\\Services\\ChessGameService.cs",
+              "ViewState": "AgIAAHoAAAAAAAAAAAAUwIQAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-17T05:31:18.368Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "D:\\2025\\individual\\github\\MyGames\\MyGames\\MyGames.Desktop\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "MyGames.Desktop\\MainWindow.xaml",
+              "ToolTip": "D:\\2025\\individual\\github\\MyGames\\MyGames\\MyGames.Desktop\\MainWindow.xaml",
+              "RelativeToolTip": "MyGames.Desktop\\MainWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-10-17T05:10:20.727Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "App.xaml.cs",
+              "DocumentMoniker": "D:\\2025\\individual\\github\\MyGames\\MyGames\\MyGames.Desktop\\App.xaml.cs",
+              "RelativeDocumentMoniker": "MyGames.Desktop\\App.xaml.cs",
+              "ToolTip": "D:\\2025\\individual\\github\\MyGames\\MyGames\\MyGames.Desktop\\App.xaml.cs",
+              "RelativeToolTip": "MyGames.Desktop\\App.xaml.cs",
+              "ViewState": "AgIAABsAAAAAAAAAAAAxwCwAAAA9AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-17T03:44:01.201Z",
+              "EditorCaption": ""
+            }
+          ]
+        },
+        {
+          "DockedHeight": 250,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
