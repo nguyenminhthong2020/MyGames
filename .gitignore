@@ -1,0 +1,104 @@
+# =========================================
+# MyGames project - Global .gitignore
+# Location: /MyGames/.gitignore
+# Applies to all subfolders (including MyGames.Desktop)
+# =========================================
+
+# Ignore Visual Studio temporary files, build results, and personal settings
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Ignore Visual Studio Code workspace settings
+.vscode/
+*.code-workspace
+
+# Ignore build results
+**/obj/
+# Keep bin folders, but ignore nested temp inside them
+**/bin/Debug*/temp/
+**/bin/Release*/temp/
+
+# Ignore NuGet packages
+**/packages/
+# but keep the packages folder if it contains a .gitkeep or custom files
+!**/packages/*.gitkeep
+
+# Ignore backup & generated files
+*_i.c
+*_p.c
+*_h.h
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.pdb
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlh
+*.tli
+*.tmp
+*.tmp_proj
+*.log
+*.vspscc
+*.vssscc
+*_i.asm
+*_p.asm
+*.cache
+*.wixproj.bindings
+*.wixproj.sourcedata
+
+# Ignore test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# Ignore Auto-generated files
+*.Designer.cs
+*.generated.cs
+*.g.cs
+*.g.i.cs
+*.ncb
+*.dbmdl
+*.bak
+*.Backup
+*.log
+*.ldf
+*.mdf
+*.svclog
+
+# Ignore publish output
+**/PublishProfiles/
+**/AppPackages/
+**/BundleArtifacts/
+**/artifacts/
+
+# Ignore system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Ignore ReSharper and JetBrains Rider
+_ReSharper*/
+*.DotSettings.user
+.idea/
+
+# Ignore user-specific files
+*.swp
+*.swo
+
+# Ignore log and dump files
+*.log
+*.dmp
+
+# =========================================
+# Explicitly keep bin folder (important for Stockfish executable)
+# =========================================
+!**/bin/

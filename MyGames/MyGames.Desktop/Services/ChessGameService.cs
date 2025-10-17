@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using MyGames.Desktop.Logs;
+﻿using MyGames.Desktop.Logs;
 using MyGames.Desktop.Models;
 using MyGames.Desktop.ViewModels;
 using System.Text.Json;
