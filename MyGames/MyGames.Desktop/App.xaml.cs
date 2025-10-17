@@ -13,21 +13,24 @@ namespace MyGames.Desktop;
 public partial class App : Application
 {
     private IHost? _host;
+    public IServiceProvider Services => _host!.Services;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
-        IConfigurationRoot? builtConfig = null;
+        IConfigurationRoot? builtConfig = new ConfigurationBuilder()
+                        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                        .Build();
 
         _host = Host.CreateDefaultBuilder()
             .ConfigureAppConfiguration((ctx, config) =>
             {
-                config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-                builtConfig = config.Build();
+
             })
             .ConfigureServices((ctx, services) =>
             {
+                services.AddSingleton(builtConfig.GetSection("App").Get<AppSettings>()!);
                 services.Configure<AppSettings>(builtConfig!.GetSection("App"));
                 services.AddSingleton(sp => sp.GetRequiredService<IOptions<AppSettings>>().Value);
 
@@ -48,9 +51,8 @@ public partial class App : Application
             // ConfigureWebHostDefaults ensures Kestrel is available and sets up Startup
             .ConfigureWebHostDefaults(webBuilder =>
             {
-                var appSettings = builtConfig!.GetSection("App").Get<AppSettings>() ?? new AppSettings();
-
                 webBuilder.UseStartup<Startup>();
+                var appSettings = builtConfig!.GetSection("App").Get<AppSettings>() ?? new AppSettings();
                 webBuilder.UseUrls($"{appSettings.SchemeDomain}:{appSettings.HttpPort}");
             })
             .Build();

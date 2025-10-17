@@ -9,16 +9,9 @@ namespace MyGames.Desktop.Services
 {
     public class Startup
     {
-        private readonly AppSettings _appSettings;
-        private readonly LoggerService _logger;
-        private readonly ChessGameService _gameService;
-
-        public Startup(AppSettings appSettings, LoggerService logger, ChessGameService gameService)
-        {
-            _appSettings = appSettings;
-            _logger = logger;
-            _gameService = gameService;
-        }
+        private AppSettings _appSettings;
+        private LoggerService _logger;
+        private ChessGameService _gameService;
 
         public void ConfigureServices(IServiceCollection services)
         {
@@ -27,6 +20,10 @@ namespace MyGames.Desktop.Services
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            _appSettings = app.ApplicationServices.GetRequiredService<AppSettings>();
+            _logger = app.ApplicationServices.GetRequiredService<LoggerService>();
+            _gameService = app.ApplicationServices.GetRequiredService<ChessGameService>();
+
             string url = $"{_appSettings.SchemeDomain}:{_appSettings.HttpPort}";
             _logger.Info($"✅ Internal web server listening at {url}");
 

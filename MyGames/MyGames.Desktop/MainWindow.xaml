@@ -8,9 +8,6 @@
         Title="MyGames Desktop"
         Height="720"
         Width="1000"
-        SizeToContent="WidthAndHeight"
-        MinWidth="700"
-        MinHeight="504"
         Background="#FFF9F9F9"
         WindowStartupLocation="CenterScreen">
 

@@ -5,11 +5,26 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              d:DesignHeight="400"
-             d:DesignWidth="400">
+             d:DesignWidth="400"
+             x:Name="RootControl">
 
-    <Grid>
-        <UniformGrid x:Name="BoardGrid"
+    <!--<Grid>
+        --><!--<UniformGrid x:Name="BoardGrid"
                      Rows="8"
-                     Columns="8" />
-    </Grid>
+                     Columns="8" />-->
+        <!-- Root grid: left column for rank labels, bottom row for file labels --><!--
+        <Grid x:Name="RootGrid">
+            --><!-- dynamic content created in code-behind --><!--
+        </Grid>
+    </Grid>-->
+
+    <Border x:Name="BoardBorder"
+            BorderThickness="2"
+            BorderBrush="Transparent"
+            CornerRadius="4"
+            Padding="3"
+            SnapsToDevicePixels="True">
+        <Grid x:Name="BoardGrid" />
+    </Border>
+
 </UserControl>

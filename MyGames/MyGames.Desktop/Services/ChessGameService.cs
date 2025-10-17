@@ -1,4 +1,5 @@
-﻿using MyGames.Desktop.Logs;
+﻿using MyGames.Desktop.Helpers;
+using MyGames.Desktop.Logs;
 using MyGames.Desktop.Models;
 using MyGames.Desktop.ViewModels;
 using System.Text.Json;
@@ -99,11 +100,21 @@ namespace MyGames.Desktop.Services
 
             _logger.Info($"Move received: {moveSan}");
 
+            // --- 1) Ngăn trùng lặp: nếu move gần nhất giống hệt, bỏ qua ---
+            var last = _mainVm.Moves.LastOrDefault();
+            if (last is not null && string.Equals(last.MoveNotation, moveSan, StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.Info($"Duplicate move ignored: {moveSan}");
+                return;
+            }
+
+            // --- 2) Thêm tạm SAN vào danh sách (lưu lịch sử gốc) ---
             var move = new ChessMove
             {
                 MoveNumber = _mainVm.Moves.Count + 1,
                 MoveNotation = moveSan,
-                Timestamp = DateTime.Now
+                Timestamp = DateTime.Now,
+                Player = ((_mainVm.Moves.Count % 2) == 0) ? PlayerColor.White : PlayerColor.Black
             };
             _mainVm.Moves.Add(move);
 
@@ -121,20 +132,69 @@ namespace MyGames.Desktop.Services
                 }
             }
 
+            // --- 3) Thử chuyển SAN -> UCI ngay tại đây ---
+            // Build current UCI history (strings) from existing moves (some may still be SAN)
+            var existingNotations = _mainVm.Moves.Select(m => m.MoveNotation).ToList();
+
+            string uci = string.Empty;
+            try
+            {
+                // SanToUciConverter.ConvertSanToUci nhận (san, moveHistory)
+                // moveHistory giúp converter đưa ra dự đoán tốt hơn (nếu nó cần)
+                uci = SanToUciConverter.ConvertSanToUci(moveSan, existingNotations, startingFen: "startpos");
+
+                // Nếu convert ra chuỗi có dạng UCI, cập nhật move lưu trong model thành UCI
+                if (!string.IsNullOrWhiteSpace(uci) && IsUciMove(uci))
+                {
+                    move.MoveNotation = uci; // ghi đè SAN -> UCI để BuildUciMovesString hoạt động
+                    _logger.Info($"Converted SAN -> UCI: {moveSan} -> {uci}");
+                }
+                else
+                {
+                    _logger.Info($"SAN->UCI conversion returned empty/invalid for {moveSan}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error converting SAN to UCI for {moveSan}: {ex.Message}");
+            }
+
+
+            // --- 4) Nếu hiện tại toàn bộ moves đã là UCI, gọi engine; nếu không, báo chờ ---
             // 🔹 Engine suggestion
-            string? movesUci = BuildUciMovesString(_mainVm.Moves, out bool allAreUci);
+            //string? movesUci = BuildUciMovesString(_mainVm.Moves, out bool allAreUci);
+
+            //if (!allAreUci)
+            //{
+            //    _mainVm.RecommendedMove = "(waiting for SAN->UCI conversion)";
+            //    _logger.Info("Moves are not all UCI; skipping engine call until SAN->UCI conversion is implemented.");
+            //    return;
+            //}
+            // 🔹 Cố gắng chuyển tất cả SAN sang UCI trước khi gọi engine
+            bool allAreUci = SanToUciConverter.TryConvertAllToUci(_mainVm.Moves.Select(x => x).ToList());
 
             if (!allAreUci)
             {
                 _mainVm.RecommendedMove = "(waiting for SAN->UCI conversion)";
-                _logger.Info("Moves are not all UCI; skipping engine call until SAN->UCI conversion is implemented.");
+                _logger.Info("Một số nước vẫn chưa convert được sang UCI.");
                 return;
             }
 
+            // 🔹 Xây lại chuỗi moves UCI sau khi convert
+            string movesUci = BuildUciMovesString(_mainVm.Moves, out _);
+
+
+            // --- 5) Gọi Stockfish có timeout để tránh treo ---
             try
             {
-                var suggestion = _stockfish.GetBestMove(movesUci);
+                // gọi async với timeout (ví dụ 5000 ms)
+                var suggestion = await Task.Run(() => _stockfish.GetBestMove(movesUci), cancellationToken: CancellationToken.None);
                 _mainVm.RecommendedMove = suggestion ?? "(no suggestion)";
+            }
+            catch (OperationCanceledException)
+            {
+                _mainVm.RecommendedMove = "(engine timeout)";
+                _logger.Error("Stockfish call timed out.");
             }
             catch (Exception ex)
             {

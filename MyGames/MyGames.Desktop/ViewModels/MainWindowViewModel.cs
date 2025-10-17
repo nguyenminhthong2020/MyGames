@@ -22,6 +22,11 @@ namespace MyGames.Desktop.ViewModels
         public ObservableCollection<string> MoveHistory { get; } = new();
         public ObservableCollection<string> LogLines { get; } = new();
 
+        // Trạng thái bàn cờ
+        public ChessBoardState Board { get; }
+
+        private string? _selectedSquare; // lưu ô đầu tiên khi người chơi click
+
         // --- Properties ---
         public string GameStatus
         {
@@ -68,6 +73,8 @@ namespace MyGames.Desktop.ViewModels
             _stockfishService = stockfishService;
             _logger = logger;
 
+            Board = new ChessBoardState();
+
             ResetGameCommand = new RelayCommand(_ => ResetGame());
             AnalyzeCommand = new RelayCommand(async _ => await OnAnalyzeRequested());
 
@@ -88,8 +95,20 @@ namespace MyGames.Desktop.ViewModels
 
         public void AddMove(string from, string to, PlayerColor player = PlayerColor.White)
         {
-            if (string.IsNullOrWhiteSpace(from) || string.IsNullOrWhiteSpace(to)) return;
+            if (string.IsNullOrWhiteSpace(from) || string.IsNullOrWhiteSpace(to)) 
+                return;
 
+            _logger.Info($"Người chơi chọn {from} → {to}");
+
+            // 🧩 Bước 1: Thực hiện di chuyển trên bàn cờ
+            bool moved = Board.MovePiece(from, to);
+            if (!moved)
+            {
+                _logger.Warn($"Không có quân cờ nào ở {from} để di chuyển.");
+                return;
+            }
+
+            // 🧩 Bước 2: Tạo đối tượng ChessMove
             var notation = $"{from}{to}";
             var move = new ChessMove
             {
@@ -99,22 +118,51 @@ namespace MyGames.Desktop.ViewModels
                 Player = player
             };
 
+            // 🧩 Bước 3: Kiểm tra trùng lặp (tránh spam click)
+            if (Moves.Any(m => m.MoveNotation == notation && m.Player == player))
+                return;
+
             Moves.Add(move);
             MoveHistory.Add($"{move.MoveNumber}. {player}: {notation} ({move.Timestamp:T})");
 
+            // 🧩 Bước 4: Cập nhật trạng thái & log
             StatusMessage = $"Đã đi: {from} → {to}";
             // RecommendedMove = "(chờ AI gợi ý...)";
 
             RecommendedMove = "(đang tính...)";
 
-            // Gọi engine gợi ý nước tiếp theo
+            _logger.Info($"Đã di chuyển: {notation}");
+            _logger.Info("Trạng thái bàn hiện tại:\n" + Board.ToString());
+
+            // 🧩 Bước 5: Gọi engine Stockfish gợi ý nước tiếp theo (phân tích tiếp theo)
             var movesUci = string.Join(" ", Moves.Select(m => m.MoveNotation));
             _ = AnalyzeBoardAsync(movesUci: movesUci, depth: 12);
+        }
+
+        /// <summary>
+        /// Dùng cho sự kiện click lần đầu (chọn ô)
+        /// </summary>
+        public void SelectSquare(string square)
+        {
+            if (_selectedSquare == null)
+            {
+                _selectedSquare = square;
+                _logger.Info($"Chọn ô đầu tiên: {_selectedSquare}");
+            }
+            else
+            {
+                AddMove(_selectedSquare, square);
+                _selectedSquare = null;
+            }
         }
 
         public void AddMoveSan(string san, PlayerColor player = PlayerColor.White)
         {
             if (string.IsNullOrWhiteSpace(san)) return;
+
+            // Ngăn trùng lặp
+            if (Moves.Any(m => m.MoveNotation == san && m.Player == player))
+                return;
 
             var move = new ChessMove
             {
@@ -128,7 +176,10 @@ namespace MyGames.Desktop.ViewModels
             MoveHistory.Add($"{move.MoveNumber}. {player}: {san} ({move.Timestamp:T})");
 
             StatusMessage = $"Đã đi: {san}";
-            RecommendedMove = "(chờ SAN→UCI conversion...)";
+
+            // RecommendedMove = "(chờ SAN→UCI conversion...)";
+            string uci = SanToUciConverter.ConvertSanToUci(san, new List<string>());
+            RecommendedMove = uci; // ví dụ: g1f3
         }
 
         /// <summary>

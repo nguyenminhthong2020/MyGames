@@ -1,0 +1,31 @@
+﻿[2025-10-17 21:48:27.421] [INFO] ✅ Internal web server listening at http://127.0.0.1:54546
+[2025-10-17 21:48:30.178] [INFO] 🚀 Stockfish started (PID=12212)
+[2025-10-17 21:48:30.203] [INFO] [Stockfish] Stockfish 17.1 by the Stockfish developers (see AUTHORS file)
+[2025-10-17 21:48:30.409] [INFO] [Stockfish] id name Stockfish 17.1
+[2025-10-17 21:48:30.410] [INFO] [Stockfish] id author the Stockfish developers (see AUTHORS file)
+[2025-10-17 21:48:30.410] [INFO] [Stockfish] 
+[2025-10-17 21:48:30.410] [INFO] [Stockfish] option name Debug Log File type string default <empty>
+[2025-10-17 21:48:30.410] [INFO] [Stockfish] option name NumaPolicy type string default auto
+[2025-10-17 21:48:30.410] [INFO] [Stockfish] option name Threads type spin default 1 min 1 max 1024
+[2025-10-17 21:48:30.411] [INFO] [Stockfish] option name Hash type spin default 16 min 1 max 33554432
+[2025-10-17 21:48:30.411] [INFO] [Stockfish] option name Clear Hash type button
+[2025-10-17 21:48:30.411] [INFO] [Stockfish] option name Ponder type check default false
+[2025-10-17 21:48:30.412] [INFO] [Stockfish] option name MultiPV type spin default 1 min 1 max 256
+[2025-10-17 21:48:30.412] [INFO] [Stockfish] option name Skill Level type spin default 20 min 0 max 20
+[2025-10-17 21:48:30.412] [INFO] [Stockfish] option name Move Overhead type spin default 10 min 0 max 5000
+[2025-10-17 21:48:30.412] [INFO] [Stockfish] option name nodestime type spin default 0 min 0 max 10000
+[2025-10-17 21:48:30.412] [INFO] [Stockfish] option name UCI_Chess960 type check default false
+[2025-10-17 21:48:30.413] [INFO] [Stockfish] option name UCI_LimitStrength type check default false
+[2025-10-17 21:48:30.413] [INFO] [Stockfish] option name UCI_Elo type spin default 1320 min 1320 max 3190
+[2025-10-17 21:48:30.413] [INFO] [Stockfish] option name UCI_ShowWDL type check default false
+[2025-10-17 21:48:30.413] [INFO] [Stockfish] option name SyzygyPath type string default <empty>
+[2025-10-17 21:48:30.413] [INFO] [Stockfish] option name SyzygyProbeDepth type spin default 1 min 1 max 100
+[2025-10-17 21:48:30.414] [INFO] [Stockfish] option name Syzygy50MoveRule type check default true
+[2025-10-17 21:48:30.414] [INFO] [Stockfish] option name SyzygyProbeLimit type spin default 7 min 0 max 7
+[2025-10-17 21:48:30.414] [INFO] [Stockfish] option name EvalFile type string default nn-1c0000000000.nnue
+[2025-10-17 21:48:30.414] [INFO] [Stockfish] option name EvalFileSmall type string default nn-37f18f62d772.nnue
+[2025-10-17 21:48:30.414] [INFO] [Stockfish] uciok
+[2025-10-17 21:48:30.414] [INFO] ✅ Stockfish sẵn sàng nhận lệnh UCI.
+[2025-10-17 21:48:30.415] [INFO] ♟ Bắt đầu phân tích FEN (depth=12)
+[2025-10-17 21:48:30.417] [INFO] ➡ Gửi lệnh: position fen f7g6
+[2025-10-17 21:48:30.967] [INFO] ⬅ Kết quả từ Stockfish (position fen f7g6): 

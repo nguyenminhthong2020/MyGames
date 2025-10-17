@@ -31,10 +31,16 @@ namespace MyGames.Desktop.Logs
         public void Warning(string message, params object[] args) =>
             WriteLog("WARN", FormatMessage(message, args));
 
-        public void Error(string message, params object[] args) =>
-            WriteLog("ERROR", FormatMessage(message, args));
 
-        // Overload that accepts an exception
+        // Simple helper that existed before (kept for compatibility)
+        public void Info(string message) => Information(message);
+        public void Warn(string message) => Warning(message);
+
+        public void Error(string message, params object[] args)
+        {
+            WriteLog("ERROR", FormatMessage(message, args));
+        }
+
         public void Error(Exception ex, string? message = null, params object[] args)
         {
             var prefix = string.IsNullOrEmpty(message) ? string.Empty : FormatMessage(message, args) + Environment.NewLine;
@@ -42,14 +48,12 @@ namespace MyGames.Desktop.Logs
             WriteLog("ERROR", full);
         }
 
-        // Simple helper that existed before (kept for compatibility)
-        public void Info(string message) => Information(message);
-        public void Warn(string message) => Warning(message);
-        public void Error(string message, Exception? ex = null)
+        public void ErrorWithOptional(Exception? ex, string message, params object[] args)
         {
-            if (ex is null) Error(message);
-            else Error(ex, message);
+            if (ex == null) Error(message, args);
+            else Error(ex, message, args);
         }
+
 
         private static string FormatMessage(string message, params object[] args)
         {
