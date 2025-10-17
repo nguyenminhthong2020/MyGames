@@ -60,9 +60,10 @@ namespace MyGames.Desktop.ViewModels
         // --- Services (DI injected) ---
         private readonly StockfishService _stockfishService;
         private readonly LoggerService _logger;
+        private readonly AppSettings _appSettings;
 
         // --- Constructor (DI) ---
-        public MainWindowViewModel(StockfishService stockfishService, LoggerService logger)
+        public MainWindowViewModel(StockfishService stockfishService, LoggerService logger, AppSettings appSettings)
         {
             _stockfishService = stockfishService;
             _logger = logger;
@@ -79,6 +80,8 @@ namespace MyGames.Desktop.ViewModels
                         LogLines.RemoveAt(0);
                 });
             };
+
+            this._appSettings = appSettings;
         }
 
         // --- Methods ---
@@ -144,7 +147,7 @@ namespace MyGames.Desktop.ViewModels
                 // 🔥 Lazy start engine nếu chưa chạy
                 if (!_stockfishService.IsRunning)
                 {
-                    _stockfishService.Start(Constants.StockfishPath);
+                    _stockfishService.Start(_appSettings.StockfishPath);
                 }
 
                 GameStatus = "Đang phân tích...";

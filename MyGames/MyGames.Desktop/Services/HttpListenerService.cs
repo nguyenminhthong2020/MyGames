@@ -39,7 +39,7 @@ namespace MyGames.Desktop.Services
             _webHost = new HostBuilder()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseUrls($"{_appSettings.SchemeDomain}:{Constants.LocalPort}");
+                    webBuilder.UseUrls($"{_appSettings.SchemeDomain}:{_appSettings.HttpPort}");
                     webBuilder.ConfigureServices(services =>
                     {
                         // no special services required here
