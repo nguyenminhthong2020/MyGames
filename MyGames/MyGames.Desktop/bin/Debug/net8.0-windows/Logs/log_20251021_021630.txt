@@ -1,0 +1,9 @@
+﻿[2025-10-21 02:16:30.623] [INFO] ✅ Internal web server listening at http://127.0.0.1:54546
+[2025-10-21 02:16:31.661] [INFO] Player color chosen: None
+[2025-10-21 02:16:34.664] [INFO] Player color chosen: White
+[2025-10-21 02:16:36.511] [INFO] Người chơi chọn e2 → e4
+[2025-10-21 02:16:36.517] [INFO] HighlightLastMove_Start
+[2025-10-21 02:16:36.519] [INFO] HighlightLastMove_End
+[2025-10-21 02:16:36.528] [INFO] Ván cờ kết thúc sau người chơi move: Draw
+[2025-10-21 02:16:36.528] [INFO] HighlightLastMove_Start
+[2025-10-21 02:16:36.529] [INFO] HighlightLastMove_End

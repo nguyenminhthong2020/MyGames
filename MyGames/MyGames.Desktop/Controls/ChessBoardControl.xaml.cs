@@ -1,20 +1,20 @@
-﻿using MyGames.Desktop.Models;
+﻿using Microsoft.Extensions.DependencyInjection;
+using MyGames.Desktop.Logs;
+using MyGames.Desktop.Models;
+using SharpVectors.Converters;
+using SharpVectors.Renderers.Wpf;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
 
 namespace MyGames.Desktop.Controls
 {
     public partial class ChessBoardControl : UserControl
     {
-        private readonly int _rows = 8;
-        private readonly int _cols = 8;
-
-        // Map square string -> Button
-        //private readonly Dictionary<string, Button> _cells = new();
-
         // Selected cell for click-to-move behavior
         private Button? _selectedCell;
 
@@ -30,14 +30,16 @@ namespace MyGames.Desktop.Controls
         private string? _lastFrom;
         private string? _lastTo;
 
-
-        // Code V3, 4a
         /// <summary>
         /// // Map square string -> Button
         /// </summary>
         private readonly Dictionary<string, Button> _cells = new();
         private Button? _selectedButton;
+
+        //  Trạng thái lượt hiện tại
         private PlayerColor _currentTurn = PlayerColor.White;
+        // Cho phép trạng thái "chưa chọn bên"
+        private bool _isPlayerColorChosen = false;
 
         public event Action<string>? SquareSelected;
 
@@ -50,315 +52,203 @@ namespace MyGames.Desktop.Controls
 
         private TextBlock? _dragGhost; // 👈 hiển thị quân cờ bay theo chuột
 
+        private readonly SolidColorBrush _lightSquareBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EEEED2"));
+        private readonly SolidColorBrush _darkSquareBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#769656"));
+
+        //btn.FontFamily = new FontFamily("Segoe UI Symbol"); 
+        //btn.FontFamily = new FontFamily("Chess Merida Unicode");
+        private FontFamily _fontFamily = new FontFamily(new Uri("pack://application:,,,/MyGames.Desktop;component/"), "/Resources/Fonts/#Chess Merida Unicode");
+
+        private readonly LoggerService _logger = App.ServiceProvider.GetRequiredService<LoggerService>();
+
+        private readonly Dictionary<string, SvgViewbox> _pieceCache = new();
+        private readonly Dictionary<string, ImageSource> _pieceBitmapCache = new();
+
+        private HashSet<string> _legalTargets = new HashSet<string>();
+
+        private double _pieceSize = 42; // mặc định
+
+        public static readonly DependencyProperty IsBlackPlayerProperty =
+    DependencyProperty.Register(nameof(IsBlackPlayer), typeof(bool), typeof(ChessBoardControl),
+        new PropertyMetadata(false, OnIsBlackPlayerChanged));
+
+        public event EventHandler<PromotionEventArgs>? PromotionRequired;
+
+        public bool IsBlackPlayer
+        {
+            get => (bool)GetValue(IsBlackPlayerProperty);
+            set => SetValue(IsBlackPlayerProperty, value);
+        }
+
         public ChessBoardControl()
         {
             InitializeComponent();
-
-            // v1
-            //DrawBoard(); // chỉ vẽ sau khi XAML đã load xong
-
-            // v2
-            // BuildBoardGrid();
-
-            // v3
             BuildBoard();
+            LoadPieceBitmaps();
         }
 
-        #region V1
-        ///// <summary>
-        ///// Tạo bàn cờ 8x8 xen kẽ màu trắng và nâu
-        ///// </summary>
-        //private void DrawBoard()
-        //{
-        //    BoardGrid.Children.Clear();
-        //    BoardGrid.Rows = _rows;
-        //    BoardGrid.Columns = _cols;
-        //    _cells.Clear();
+        private static void OnIsBlackPlayerChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var control = (ChessBoardControl)d;
+            control.RefreshBoard();
+        }
 
-        //    for (int r = 0; r < _rows; r++)
-        //    {
-        //        for (int c = 0; c < _cols; c++)
-        //        {
-        //            var coord = $"{(char)('a' + c)}{8 - r}";
-        //            var cell = new Button
-        //            {
-        //                Tag = coord,
-        //                Background = (r + c) % 2 == 0 ? Brushes.Beige : Brushes.SaddleBrown,
-        //                BorderThickness = new Thickness(0.5),
-        //                Margin = new Thickness(0),
-        //                FontSize = 20
-        //            };
-        //            cell.Click += OnCellClicked;
-        //            BoardGrid.Children.Add(cell);
-        //            _cells[coord] = cell;
-        //        }
-        //    }
-        //}
+        private void ApplyBoardOrientation()
+        {
+            if (BoardGrid == null || _cells.Count == 0)
+                return;
 
-        //private void OnCellClicked(object sender, RoutedEventArgs e)
-        //{
-        //    if (sender is not Button cell) return;
+            // Mỗi ô có key = "a1".."h8".
+            // BuildBoard ban đầu đặt Buttons tại Grid.Row = r (0..7), Grid.Column = c+1 (1..8).
+            // Ta tính vị trí hiển thị từ coord:
+            //
+            // originalGridRow = 8 - rank  (với rank là số từ 1..8)
+            // originalGridCol = file + 1  (với file 0..7 => col 1..8)
+            //
+            // Nếu IsBlackPlayer==false -> hiển thị ở vị trí original.
+            // Nếu IsBlackPlayer==true  -> hiển thị ở vị trí (7 - originalGridRow, 9 - originalGridCol)
+            //
+            // Tương đương:
+            // displayRow = IsBlackPlayer ? (7 - originalGridRow) : originalGridRow
+            // displayCol = IsBlackPlayer ? (9 - originalGridCol) : originalGridCol
 
-        //    // Nếu chưa chọn ô nào thì chọn ô đầu
-        //    if (_selectedCell == null)
-        //    {
-        //        _selectedCell = cell;
-        //        _selectedCell.BorderBrush = Brushes.Red;
-        //        _selectedCell.BorderThickness = new Thickness(3);
-        //        return;
-        //    }
+            foreach (var kv in _cells)
+            {
+                string coord = kv.Key; // e.g. "a1"
+                var btn = kv.Value;
 
-        //    // Nếu đã chọn rồi, đây là click thứ 2
-        //    string from = _selectedCell.Tag.ToString()!;
-        //    string to = cell.Tag.ToString()!;
+                int file = coord[0] - 'a';       // 0..7
+                int rankNum = coord[1] - '0';    // 1..8
 
-        //    // Phát sự kiện MoveSelected
-        //    MoveSelected?.Invoke(this, new MoveSelectedEventArgs(from, to));
+                int originalGridRow = 8 - rankNum;      // 0..7
+                int originalGridCol = file + 1;         // 1..8
 
-        //    // Reset highlight
-        //    _selectedCell.BorderBrush = null;
-        //    _selectedCell.BorderThickness = new Thickness(0.5);
-        //    _selectedCell = null;
-        //}
+                int displayRow = IsBlackPlayer ? (7 - originalGridRow) : originalGridRow;
+                int displayCol = IsBlackPlayer ? (9 - originalGridCol) : originalGridCol;
 
-        ///// <summary>
-        ///// Highlight the last move (both from and to squares). Use RemoveLastHighlight() to clear.
-        ///// </summary>
-        //public void HighlightLastMove(string from, string to)
-        //{
-        //    RemoveLastHighlight();
+                Grid.SetRow(btn, displayRow);
+                Grid.SetColumn(btn, displayCol);
+            }
 
-        //    if (_cells.TryGetValue(from, out var bFrom))
-        //    {
-        //        bFrom.Background = Brushes.Yellow;
-        //    }
-        //    if (_cells.TryGetValue(to, out var bTo))
-        //    {
-        //        bTo.Background = Brushes.Yellow;
-        //    }
-        //}
+            // cập nhật nhãn rank (cột 0) và file (hàng 8) cho phù hợp với hướng hiển thị
+            foreach (var child in BoardGrid.Children)
+            {
+                if (child is TextBlock tb)
+                {
+                    int col = Grid.GetColumn(tb);
+                    int row = Grid.GetRow(tb);
 
-        ///// <summary>
-        ///// Restore original colors (simple approach).
-        ///// </summary>
-        //public void RemoveLastHighlight()
-        //{
-        //    foreach (var kv in _cells)
-        //    {
-        //        var coord = kv.Key;
-        //        var btn = kv.Value;
-        //        // recompute default color
-        //        int file = coord[0] - 'a';
-        //        int rank = '8' - coord[1]; // r index
-        //        var defaultBrush = ((file + rank) % 2 == 0) ? Brushes.Beige : Brushes.SaddleBrown;
-        //        btn.Background = defaultBrush;
-        //    }
-        //}
-        #endregion
+                    // Rank label (cột 0, hàng 0..7): hiển thị số tương ứng với hàng hiển thị
+                    if (col == 0 && row >= 0 && row < 8)
+                    {
+                        // visual row = row
+                        tb.Text = IsBlackPlayer ? (row + 1).ToString() : (8 - row).ToString();
+                    }
+                    // File label (hàng 8, cột 1..8): hiển thị chữ tương ứng
+                    else if (row == 8 && col > 0 && col <= 8)
+                    {
+                        int fileIdx = col - 1; // 0..7
+                        tb.Text = IsBlackPlayer
+                                ? ((char)('h' - fileIdx)).ToString()
+                                : ((char)('a' + fileIdx)).ToString();
 
-        #region Code V2
-        ///// <summary>
-        ///// Assign board state and refresh UI.
-        ///// </summary>
-        //public void SetBoardState(ChessBoardState board)
-        //{
-        //    _boardState = board ?? throw new ArgumentNullException(nameof(board));
-        //    RefreshBoard();
-        //}
+                    }
+                }
+            }
+        }
 
-        ///// <summary>
-        ///// Build the 9x9 visual grid (ranks at left, files at bottom) and 8x8 board buttons.
-        ///// </summary>
-        //private void BuildBoardGrid()
-        //{
-        //    RootGrid.Children.Clear();
-        //    RootGrid.RowDefinitions.Clear();
-        //    RootGrid.ColumnDefinitions.Clear();
-        //    _cells.Clear();
+        private void UserControl_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            double w = e.NewSize.Width;
+            double h = e.NewSize.Height;
 
-        //    // 9 rows: 8 for board + 1 for files labels at bottom
-        //    for (int r = 0; r < 9; r++)
-        //        RootGrid.RowDefinitions.Add(new RowDefinition { Height = (r == 8) ? GridLength.Auto : new GridLength(1, GridUnitType.Star) });
+            double newSize = 42;
 
-        //    // 9 cols: 1 for rank labels at left + 8 for board
-        //    for (int c = 0; c < 9; c++)
-        //        RootGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = (c == 0) ? GridLength.Auto : new GridLength(1, GridUnitType.Star) });
+            if (w <= 460 || h <= 460)
+                newSize = 30;
 
-        //    // Add rank labels (left side). Ranks 8..1
-        //    for (int r = 0; r < 8; r++)
-        //    {
-        //        var rank = 8 - r;
-        //        var tb = new TextBlock
-        //        {
-        //            Text = rank.ToString(),
-        //            FontWeight = FontWeights.SemiBold,
-        //            VerticalAlignment = VerticalAlignment.Center,
-        //            HorizontalAlignment = HorizontalAlignment.Center,
-        //            Margin = new Thickness(4)
-        //        };
-        //        Grid.SetRow(tb, r);
-        //        Grid.SetColumn(tb, 0);
-        //        RootGrid.Children.Add(tb);
-        //    }
+            if (w <= 360 || h <= 360)
+                newSize = 24;
 
-        //    // Add file labels (bottom). Files a..h
-        //    for (int c = 0; c < 8; c++)
-        //    {
-        //        char file = (char)('a' + c);
-        //        var tb = new TextBlock
-        //        {
-        //            Text = file.ToString(),
-        //            FontWeight = FontWeights.SemiBold,
-        //            VerticalAlignment = VerticalAlignment.Center,
-        //            HorizontalAlignment = HorizontalAlignment.Center,
-        //            Margin = new Thickness(8, 4, 8, 4)
-        //        };
-        //        Grid.SetRow(tb, 8);
-        //        Grid.SetColumn(tb, c + 1);
-        //        RootGrid.Children.Add(tb);
-        //    }
+            if (w <= 290 || h <= 290)
+                newSize = 20;
 
-        //    // Create 8x8 buttons for the board squares
-        //    for (int r = 0; r < 8; r++)
-        //    {
-        //        for (int c = 0; c < 8; c++)
-        //        {
-        //            // Compute square name: files a..h, ranks 8..1
-        //            char file = (char)('a' + c);
-        //            int rank = 8 - r;
-        //            string coord = $"{file}{rank}";
+            if (Math.Abs(newSize - _pieceSize) > 0.1)
+            {
+                _pieceSize = newSize;
+                RefreshBoard();
+            }
+        }
 
-        //            var btn = new Button
-        //            {
-        //                Tag = coord,
-        //                FontSize = 26,
-        //                Padding = new Thickness(0),
-        //                Margin = new Thickness(0.5),
-        //                Background = ((r + c) % 2 == 0) ? Brushes.Beige : Brushes.SaddleBrown,
-        //                BorderThickness = new Thickness(1),
-        //                BorderBrush = Brushes.Transparent,
-        //                Foreground = Brushes.Black
-        //            };
-        //            btn.Click += OnCellClicked;
-
-        //            Grid.SetRow(btn, r);
-        //            Grid.SetColumn(btn, c + 1); // column 0 reserved for rank labels
-        //            RootGrid.Children.Add(btn);
-        //            _cells[coord] = btn;
-        //        }
-        //    }
-        //}
-
-        ///// <summary>
-        ///// Refresh UI from internal ChessBoardState (if set).
-        ///// </summary>
-        //public void RefreshBoard()
-        //{
-        //    if (_boardState == null) return;
-
-        //    foreach (var kv in _cells)
-        //    {
-        //        string coord = kv.Key;
-        //        var btn = kv.Value;
-
-        //        var piece = _boardState.GetPieceAt(coord);
-        //        if (piece.HasValue)
-        //        {
-        //            btn.Content = PieceToEmoji(piece.Value);
-        //        }
-        //        else
-        //        {
-        //            btn.Content = string.Empty;
-        //        }
-
-        //        // restore default background if not highlighted
-        //        var file = coord[0] - 'a';
-        //        var rank = '8' - coord[1];
-        //        btn.Background = ((file + rank) % 2 == 0) ? Brushes.Beige : Brushes.SaddleBrown;
-        //        btn.BorderBrush = Brushes.Transparent;
-        //    }
-        //}
-
-        //private string PieceToEmoji(ChessPiece piece)
-        //{
-        //    // White pieces (use white glyphs), Black use black glyphs
-        //    return (piece.Color, piece.Type) switch
-        //    {
-        //        (PieceColor.White, PieceType.King) => "♔",
-        //        (PieceColor.White, PieceType.Queen) => "♕",
-        //        (PieceColor.White, PieceType.Rook) => "♖",
-        //        (PieceColor.White, PieceType.Bishop) => "♗",
-        //        (PieceColor.White, PieceType.Knight) => "♘",
-        //        (PieceColor.White, PieceType.Pawn) => "♙",
-
-        //        (PieceColor.Black, PieceType.King) => "♚",
-        //        (PieceColor.Black, PieceType.Queen) => "♛",
-        //        (PieceColor.Black, PieceType.Rook) => "♜",
-        //        (PieceColor.Black, PieceType.Bishop) => "♝",
-        //        (PieceColor.Black, PieceType.Knight) => "♞",
-        //        (PieceColor.Black, PieceType.Pawn) => "♟",
-
-        //        _ => "?"
-        //    };
-        //}
-
-        //private void OnCellClicked(object sender, RoutedEventArgs e)
-        //{
-        //    if (sender is not Button cell) return;
-        //    string coord = cell.Tag as string ?? throw new InvalidOperationException("Cell tag missing");
-
-        //    // If no selected cell yet -> select this one
-        //    if (_selectedCell == null)
-        //    {
-        //        _selectedCell = cell;
-        //        _selectedCell.BorderBrush = Brushes.Red;
-        //        _selectedCell.BorderThickness = new Thickness(3);
-        //        return;
-        //    }
-
-        //    // If clicking same cell -> deselect
-        //    if (ReferenceEquals(_selectedCell, cell))
-        //    {
-        //        _selectedCell.BorderBrush = Brushes.Transparent;
-        //        _selectedCell.BorderThickness = new Thickness(1);
-        //        _selectedCell = null;
-        //        return;
-        //    }
-
-        //    // Second click: this is the destination
-        //    string from = _selectedCell.Tag as string ?? "";
-        //    string to = coord;
-
-        //    // raise MoveSelected with UCI-like squares
-        //    MoveSelected?.Invoke(this, new MoveSelectedEventArgs(from, to));
-
-        //    // reset previous highlight
-        //    _selectedCell.BorderBrush = Brushes.Transparent;
-        //    _selectedCell.BorderThickness = new Thickness(1);
-        //    _selectedCell = null;
-        //}
-
-        ///// <summary>
-        ///// Highlight last move on board (both from and to squares).
-        ///// </summary>
-        //public void HighlightLastMove(string from, string to)
-        //{
-        //    // first clear default backgrounds
-        //    RefreshBoard();
-
-        //    if (_cells.TryGetValue(from, out var bFrom))
-        //    {
-        //        bFrom.Background = Brushes.Yellow;
-        //    }
-        //    if (_cells.TryGetValue(to, out var bTo))
-        //    {
-        //        bTo.Background = Brushes.Yellow;
-        //    }
-        //}
-        #endregion
+        /// <summary>
+        /// 🟩 Kiểm tra xem quân ở ô này có phải của bên đang tới lượt không.
+        /// </summary>
+        private bool IsPieceOfCurrentTurn(string coord)
+        {
+            if (_boardState == null) return false;
+            var piece = _boardState.GetPieceAt(coord);
+            if (!piece.HasValue) return false;
+            return (piece.Value.Color == PieceColor.White && _currentTurn == PlayerColor.White)
+                || (piece.Value.Color == PieceColor.Black && _currentTurn == PlayerColor.Black);
+        }
+        /// <summary>
+        /// 🟩 Trả về đối thủ (dùng để đổi lượt)
+        /// </summary>
+        private PlayerColor OpponentColor(PlayerColor color)
+        {
+            return color == PlayerColor.White ? PlayerColor.Black :
+                   color == PlayerColor.Black ? PlayerColor.White :
+                   PlayerColor.None;
+        }
+        /// <summary>
+        /// 🟩 Cho phép ViewModel báo rằng người chơi đã chọn màu (Trắng/Đen).
+        /// </summary>
+        public void SetPlayerColorChosen(PlayerColor color)
+        {
+            _currentTurn = color;
+            _isPlayerColorChosen = true;
+            _logger.Info($"Player color chosen: {_currentTurn}");
+        }
+        /// <summary>
+        /// 🟩 Reset trạng thái lượt đi (khi chưa chọn bên hoặc khởi động lại)
+        /// </summary>
+        public void ResetTurnState()
+        {
+            _isPlayerColorChosen = false;
+            _currentTurn = PlayerColor.None;
+        }
 
 
-        #region code V3
+        private void LoadPieceBitmaps()
+        {
+            var settings = new WpfDrawingSettings { IncludeRuntime = false, TextAsGeometry = true };
+            var converter = new FileSvgReader(settings);
+
+            string baseDir = "pack://application:,,,/MyGames.Desktop;component/Resources/Pieces/";
+
+            string[] colors = { "w", "b" };
+            string[] pieces = { "pawn", "rook", "knight", "bishop", "queen", "king" };
+
+            foreach (string color in colors)
+            {
+                foreach (string piece in pieces)
+                {
+                    string key = $"{color}_{piece}";
+                    var uri = new Uri($"{baseDir}{key}.svg");
+
+                    // SharpVectors không đọc trực tiếp pack://, cần stream:
+                    var streamInfo = Application.GetResourceStream(uri);
+                    if (streamInfo == null) continue;
+
+                    var drawing = converter.Read(streamInfo.Stream);
+                    var image = new DrawingImage(drawing);
+                    image.Freeze(); // cực quan trọng: giúp dùng đa thread + tăng hiệu năng
+
+                    _pieceBitmapCache[key] = image;
+                }
+            }
+        }
+
         /// <summary>
         /// Gán ChessBoardState và tùy chọn lượt hiện tại (để highlight viền)
         /// </summary>
@@ -437,12 +327,19 @@ namespace MyGames.Desktop.Controls
                         FontSize = 26,
                         Padding = new Thickness(0),
                         Margin = new Thickness(0.5),
-                        Background = ((r + c) % 2 == 0) ? Brushes.Beige : Brushes.SaddleBrown,
+                        Background = ((r + c) % 2 == 0) ? _lightSquareBrush : _darkSquareBrush,
                         BorderThickness = new Thickness(1),
                         BorderBrush = Brushes.Transparent,
                         Foreground = Brushes.Black,
                         Opacity = 1.0
                     };
+
+                    btn.SetValue(Grid.RowProperty, r);
+                    btn.SetValue(Grid.ColumnProperty, c + 1);
+                    btn.HorizontalContentAlignment = HorizontalAlignment.Center;
+                    btn.VerticalContentAlignment = VerticalAlignment.Center;
+                    btn.FontSize = 42;
+                    //btn.FontFamily = _family;
 
                     // hover visual
                     btn.MouseEnter += (s, e) =>
@@ -472,38 +369,82 @@ namespace MyGames.Desktop.Controls
 
         private void OnSquareClicked(Button btn, string coord)
         {
+            // Nếu chưa có board state thì thôi
+            if (_boardState == null) return;
+
+            // Nếu chưa chọn ô nào -> chọn ô nguồn
             if (_selectedButton == null)
             {
-                // chọn ô đầu tiên
+                var piece = _boardState.GetPieceAt(coord);
+                if (!piece.HasValue)
+                {
+                    // không có quân để chọn -> ignore
+                    return;
+                }
+
+                // Nếu quân trên ô không thuộc side đang có lượt -> ignore (chỉ hiển thị targets cho side đang được phép đi)
+                if (piece.Value.Color != _boardState.CurrentTurn)
+                {
+                    // Có thể flash nhẹ nhưng theo yêu cầu ta không tô đỏ, chỉ bỏ qua.
+                    return;
+                }
+
+                // chấp nhận chọn ô, hiển thị selection
                 _selectedButton = btn;
                 btn.BorderBrush = Brushes.Gold;
                 btn.BorderThickness = new Thickness(3);
+
+                // Tính và hiển thị các ô hợp lệ cho quân này
+                bool isOpponent = (piece?.Color != BoardState.CurrentTurn);
+                ShowLegalMoves(coord, isOpponent);
                 return;
             }
 
-            // nếu click lại ô đã chọn -> hủy chọn
+            // Nếu click lại ô đã chọn -> hủy chọn
             if (ReferenceEquals(_selectedButton, btn))
             {
-                _selectedButton.BorderBrush = Brushes.Transparent;
-                _selectedButton.BorderThickness = new Thickness(1);
-                _selectedButton = null;
+                ClearSelectionHighlight();
                 return;
             }
 
-            // ô thứ hai -> raise event MoveSelected
+            // Nếu đã có _selectedButton -> đây là ô đích
             string from = _selectedButton.Tag as string ?? "";
             string to = coord;
 
-            // clear selection highlight
-            _selectedButton.BorderBrush = Brushes.Transparent;
-            _selectedButton.BorderThickness = new Thickness(1);
-            _selectedButton = null;
+            // Nếu to nằm trong danh sách legal targets -> raise event
+            if (_legalTargets.Contains(to))
+            {
+                var piece = _boardState.GetPieceAt(from);
+                if (piece.HasValue && piece.Value.Type == PieceType.Pawn)
+                {
+                    int toRank = to[1] - '0';
 
-            // lưu last move để highlight
-            _lastFrom = from;
-            _lastTo = to;
+                    // ✅ kiểm tra phong tốt
+                    if ((piece.Value.Color == PieceColor.White && toRank == 8) ||
+                        (piece.Value.Color == PieceColor.Black && toRank == 1))
+                    {
+                        // Gọi event PromotionRequired
+                        PromotionRequired?.Invoke(this,
+                            new PromotionEventArgs(piece.Value.Color == PieceColor.White, from, to));
 
-            MoveSelected?.Invoke(this, new MoveSelectedEventArgs(from, to));
+                        // Không gọi MoveSelected ngay, chờ dialog xử lý
+                        ClearSelectionHighlight();
+                        return;
+                    }
+                }
+
+                // Clear selection visuals trước khi raise
+                ClearSelectionHighlight();
+                _lastFrom = from;
+                _lastTo = to;
+
+                MoveSelected?.Invoke(this, new MoveSelectedEventArgs(from, to));
+            }
+            else
+            {
+                // Click vào ô không hợp lệ -> bỏ chọn, không làm gì cả
+                ClearSelectionHighlight();
+            }
         }
 
         /// <summary>
@@ -521,32 +462,82 @@ namespace MyGames.Desktop.Controls
                 var piece = _boardState.GetPieceAt(coord);
                 if (piece.HasValue)
                 {
-                    btn.Content = PieceToEmoji(piece.Value);
+                    string prefix = piece.Value.Color == PieceColor.White ? "w" : "b";
+                    string pieceName = piece.Value.Type.ToString().ToLower(); // pawn, rook, etc.
+                    string key = $"{prefix}_{pieceName}";
+
+                    var imgSrc = _pieceBitmapCache[key];
+                    btn.Content = new Image
+                    {
+                        Source = imgSrc,
+                        Width = _pieceSize,
+                        Height = _pieceSize,
+                        Stretch = Stretch.Uniform
+                    }; //btn.Content = PieceToEmoji(piece.Value);
+
+                    btn.Foreground = (piece.Value.Color == PieceColor.White)
+                                ? Brushes.White
+                                : Brushes.Black;
+
                     btn.ToolTip = PieceToName(piece.Value);
+
+                    // 👇 thêm chút shadow cho quân trắng, giúp nổi bật
+                    if (piece.Value.Color == PieceColor.White)
+                    {
+                        btn.Effect = new DropShadowEffect
+                        {
+                            BlurRadius = 2,
+                            ShadowDepth = 0,
+                            Opacity = 0.6,
+                            Color = Colors.Black
+                        };
+                    }
+                    else
+                    {
+                        btn.Effect = null;
+                    }
                 }
                 else
                 {
                     btn.Content = string.Empty;
                     btn.ToolTip = null;
+                    btn.Foreground = Brushes.Transparent;
+                    btn.Effect = null;
                 }
 
-                // restore default bg & border (unless we want last-move highlight later)
-                int file = coord[0] - 'a';
-                int rank = '8' - coord[1];
-                btn.Background = ((file + rank) % 2 == 0) ? Brushes.Beige : Brushes.SaddleBrown;
+
+                // Xác định màu ô dựa trên tọa độ ô (không phụ thuộc hướng hiển thị)
+                int file = coord[0] - 'a';         // 0..7
+                int rank = coord[1] - '1';         // 0..7, '1' -> 0
+
+                //btn.Background = ((file + rank) % 2 == 0) ? Brushes.Beige : Brushes.SaddleBrown;
+                bool isLight = (file + rank) % 2 == 0;
+                btn.Background = isLight ? _lightSquareBrush : _darkSquareBrush;
+                // Nếu có quân thì hiện pointer khi hover
+                btn.Cursor = piece.HasValue ? Cursors.Hand : Cursors.Arrow;
+
                 btn.BorderBrush = Brushes.Transparent;
                 btn.BorderThickness = new Thickness(1);
                 btn.Opacity = 1.0;
+
+                //btn.SetValue(Grid.RowProperty, r);
+                //btn.SetValue(Grid.ColumnProperty, c + 1);
+                btn.HorizontalContentAlignment = HorizontalAlignment.Center;
+                btn.VerticalContentAlignment = VerticalAlignment.Center;
+                btn.FontSize = 42;
+
+                // Thử bản thường
+                btn.FontFamily = _fontFamily;
             }
+
+            // cập nhật lại layout hiển thị theo IsBlackPlayer
+            ApplyBoardOrientation();
 
             // apply last-move highlight if present
             if (!string.IsNullOrEmpty(_lastFrom) && !string.IsNullOrEmpty(_lastTo))
             {
                 HighlightLastMove(_lastFrom!, _lastTo!);
             }
-
-            // highlight current turn via border
-            HighlightCurrentPlayer();
         }
 
         private void OnCellClick(object sender, RoutedEventArgs e)
@@ -597,47 +588,53 @@ namespace MyGames.Desktop.Controls
             {
                 _isDragging = true;
 
-                // 4a
-                //// optional visual cue
-                //_dragSourceButton.Opacity = 0.5;
-                //DragDrop.DoDragDrop(_dragSourceButton, _dragSourceButton.Tag!.ToString(), DragDropEffects.Move);
-                //_dragSourceButton.Opacity = 1;
-
-                // 👻 tạo ghost piece (4b)
+                // 6b
                 if (_dragSourceButton.Content is string content && !string.IsNullOrEmpty(content))
                 {
                     _dragGhost = new TextBlock
                     {
                         Text = content,
-                        FontSize = 32,
-                        Opacity = 0.7,
+                        FontSize = 36,               // bạn có thể điều chỉnh kích thước ghost
+                        Opacity = 0.85,
                         IsHitTestVisible = false
                     };
-                    BoardGrid.Children.Add(_dragGhost);
-                    Panel.SetZIndex(_dragGhost, 99);
+
+                    // thêm vào overlay canvas (không làm thay đổi layout)
+                    OverlayCanvas.Children.Add(_dragGhost);
+                    Panel.SetZIndex(_dragGhost, 9999);
+
+                    // khởi tạo vị trí ngay (đặt tại từ vị trí button)
+                    var fromPos = _dragSourceButton.TransformToAncestor(this)
+                                     .Transform(new Point(0, 0));
+                    // convert to OverlayCanvas coords (overlay is same visual root so coordinates ok)
+                    Canvas.SetLeft(_dragGhost, fromPos.X);
+                    Canvas.SetTop(_dragGhost, fromPos.Y);
                 }
                 _dragSourceButton.Opacity = 0.4;
-
 
                 // ✅ ngăn sự kiện Click bị kích hoạt sau drag
                 e.Handled = true;
             }
 
+            // 6b
             if (_isDragging && _dragGhost != null)
             {
-                var p = e.GetPosition(BoardGrid);
-                Canvas.SetLeft(_dragGhost, p.X - 16);
-                Canvas.SetTop(_dragGhost, p.Y - 16);
+                // lấy vị trí tương đối so với OverlayCanvas
+                var p = e.GetPosition(OverlayCanvas);
+                Canvas.SetLeft(_dragGhost, p.X - (_dragGhost.ActualWidth / 2));
+                Canvas.SetTop(_dragGhost, p.Y - (_dragGhost.ActualHeight / 2));
             }
         }
 
         private void OnCellMouseUp(object sender, MouseButtonEventArgs e)
         {
+            // 6b
             if (_dragGhost != null)
             {
-                BoardGrid.Children.Remove(_dragGhost);
+                OverlayCanvas.Children.Remove(_dragGhost);
                 _dragGhost = null;
             }
+
 
             if (!_isDragging)
             {
@@ -652,12 +649,23 @@ namespace MyGames.Desktop.Controls
                 string from = _dragSourceButton.Tag!.ToString()!;
                 string to = target.Tag!.ToString()!;
 
+                // kiểm tra lượt
+                if (!IsPieceOfCurrentTurn(from))
+                {
+                    FlashErrorCell(from);
+                    _dragSourceButton = null;
+                    return;
+                }
+
                 // ✅ reset sớm trước khi invoke event
                 var src = _dragSourceButton;
                 _dragSourceButton = null;
 
                 if (from != to)
                     MoveSelected?.Invoke(this, new MoveSelectedEventArgs(from, to));
+
+                // đổi lượt
+                // _currentTurn = OpponentColor(_currentTurn);
             }
             else
             {
@@ -665,19 +673,22 @@ namespace MyGames.Desktop.Controls
             }
         }
 
-
         private void ResetHighlights()
         {
+            ClearSelectionHighlight(); // ensure selection cleared
             foreach (var kv in _cells)
             {
                 int file = kv.Key[0] - 'a';
                 int rank = '8' - kv.Key[1];
-                kv.Value.Background = ((file + rank) % 2 == 0) ? Brushes.Beige : Brushes.SaddleBrown;
+                kv.Value.Background = ((file + rank) % 2 == 0) ? _lightSquareBrush : _darkSquareBrush;
             }
         }
 
         public void HighlightLastMove(string from, string to)
         {
+            _logger.Info("HighlightLastMove_Start");
+            if (!_cells.ContainsKey(from) || !_cells.ContainsKey(to)) return;
+
             // restore board default first (but do not clobber selection highlight)
             foreach (var kv in _cells)
             {
@@ -687,10 +698,10 @@ namespace MyGames.Desktop.Controls
 
                 int file = kv.Key[0] - 'a';
                 int rank = '8' - kv.Key[1];
-                b.Background = ((file + rank) % 2 == 0) ? Brushes.Beige : Brushes.SaddleBrown;
+                b.Background = ((file + rank) % 2 == 0) ? _lightSquareBrush : _darkSquareBrush;
             }
 
-            
+
             if (_cells.TryGetValue(from, out var bFrom))
             {
                 AnimateMovePiece(from, to);
@@ -702,34 +713,17 @@ namespace MyGames.Desktop.Controls
                 // animate target cell slightly
                 AnimatePulse(bTo);
             }
+            _logger.Info("HighlightLastMove_End");
         }
 
         private void AnimatePulse(Button btn)
         {
-            // V3
-            //var anim = new DoubleAnimation
-            //{
-            //    From = 0.5,
-            //    To = 1.0,
-            //    Duration = TimeSpan.FromMilliseconds(300),
-            //    AutoReverse = true,
-            //    EasingFunction = new QuadraticEase()
-            //};
-
-            // 4a
             var anim = new DoubleAnimation(1.0, 0.6, TimeSpan.FromMilliseconds(150))
             {
                 AutoReverse = true,
                 RepeatBehavior = new RepeatBehavior(1)
             };
             btn.BeginAnimation(OpacityProperty, anim);
-        }
-
-        private void HighlightCurrentPlayer()
-        {
-            var color = _currentTurn == PlayerColor.White ? Brushes.AliceBlue : Brushes.LightSlateGray;
-            BoardBorder.BorderBrush = color;
-            BoardBorder.BorderThickness = new Thickness(3);
         }
 
         /// <summary>
@@ -766,10 +760,46 @@ namespace MyGames.Desktop.Controls
         }
 
         /// <summary>
-        /// Xóa selection highlight (dùng khi VM muốn reset selection)
+        /// Hiển thị các ô hợp lệ (highlight nhẹ) cho quân tại 'from'.
+        /// </summary>
+        private void ShowLegalMoves(string from, bool isOpponent)
+        {
+            _legalTargets.Clear();
+
+            // duyệt qua mọi ô và hỏi _boardState.IsMoveLegal
+            for (char f = 'a'; f <= 'h'; f++)
+            {
+                for (char r = '1'; r <= '8'; r++)
+                {
+                    string to = $"{f}{r}";
+                    if (_boardState.IsMoveLegal(from, to, isOpponent))
+                    {
+                        _legalTargets.Add(to);
+                        if (_cells.TryGetValue(to, out var targetBtn))
+                        {
+                            // highlight ô hợp lệ (màu xanh)
+                            targetBtn.Background = Brushes.LightSkyBlue;
+                        }
+                    }
+                }
+            }
+
+            // nếu không có target hợp lệ thì hủy chọn (ví dụ quân bị chặn)
+            if (_legalTargets.Count == 0)
+            {
+                // giữ selection border một lúc rồi clear
+                // nhưng theo yêu cầu không tô đỏ; ta chỉ clear ngay
+                ClearSelectionHighlight();
+            }
+        }
+
+        /// <summary>
+        /// Xóa mọi highlight/gợi ý và selection.
+        /// Giữ nguyên màu ô mặc định.
         /// </summary>
         public void ClearSelectionHighlight()
         {
+            // reset selection border
             if (_selectedButton != null)
             {
                 _selectedButton.BorderBrush = Brushes.Transparent;
@@ -777,8 +807,22 @@ namespace MyGames.Desktop.Controls
                 _selectedButton.Opacity = 1.0;
                 _selectedButton = null;
             }
+
+            // reset legal targets highlight
+            foreach (var t in _legalTargets)
+            {
+                if (_cells.TryGetValue(t, out var btn))
+                {
+                    int file = btn.Tag!.ToString()![0] - 'a';
+                    int rank = '8' - btn.Tag!.ToString()![1];
+                    bool isLight = (file + rank) % 2 == 0;
+                    btn.Background = isLight ? _lightSquareBrush : _darkSquareBrush;
+                }
+            }
+            _legalTargets.Clear();
         }
 
+        [Obsolete("Có thể dùng trong tương lai.")]
         private string PieceToEmoji(ChessPiece piece)
         {
             return (piece.Color, piece.Type) switch
@@ -825,44 +869,52 @@ namespace MyGames.Desktop.Controls
             if (!_cells.TryGetValue(from, out var btnFrom) || !_cells.TryGetValue(to, out var btnTo))
                 return;
 
-            var pieceText = (btnFrom.Content as TextBlock)?.Text;
-            if (string.IsNullOrEmpty(pieceText))
-                return;
+            // Lấy quân cờ gốc (nếu là string emoji hoặc TextBlock)
+            string? pieceText = null;
+            if (btnFrom.Content is TextBlock tb)
+                pieceText = tb.Text;
+            else if (btnFrom.Content is string s)
+                pieceText = s;
 
-            // Lấy vị trí pixel tương đối
-            var fromPos = btnFrom.TransformToAncestor(BoardGrid)
+            if (string.IsNullOrEmpty(pieceText)) return;
+
+            // Lấy vị trí tương đối so với OverlayCanvas
+            var fromPos = btnFrom.TransformToAncestor(OverlayCanvas)
                 .Transform(new Point(0, 0));
-            var toPos = btnTo.TransformToAncestor(BoardGrid)
+            var toPos = btnTo.TransformToAncestor(OverlayCanvas)
                 .Transform(new Point(0, 0));
 
-            // Tạo TextBlock “bay”
+            // Tạo “ghost” bay
             var flying = new TextBlock
             {
                 Text = pieceText,
-                FontSize = 40,
+                FontSize = 40, // kích thước có thể chỉnh cho phù hợp bàn cờ
                 HorizontalAlignment = HorizontalAlignment.Left,
-                VerticalAlignment = VerticalAlignment.Top
+                VerticalAlignment = VerticalAlignment.Top,
+                IsHitTestVisible = false,
+                Opacity = 0.9
             };
 
-            // Thêm vào Grid tạm thời
-            BoardGrid.Children.Add(flying);
+            // Thêm ghost vào overlay (không ảnh hưởng layout)
+            OverlayCanvas.Children.Add(flying);
+            Panel.SetZIndex(flying, 9999);
             Canvas.SetLeft(flying, fromPos.X);
             Canvas.SetTop(flying, fromPos.Y);
 
-            // Tạo animation
-            var animX = new DoubleAnimation(fromPos.X, toPos.X, TimeSpan.FromMilliseconds(300))
+            // Animation bay tới ô đích
+            var animX = new DoubleAnimation(fromPos.X, toPos.X, TimeSpan.FromMilliseconds(250))
             {
                 EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseInOut }
             };
-            var animY = new DoubleAnimation(fromPos.Y, toPos.Y, TimeSpan.FromMilliseconds(300))
+            var animY = new DoubleAnimation(fromPos.Y, toPos.Y, TimeSpan.FromMilliseconds(250))
             {
                 EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseInOut }
             };
 
-            // Khi xong animation → xóa TextBlock và refresh lại board
+            // Khi hoàn thành → xóa ghost và refresh
             animY.Completed += (_, __) =>
             {
-                BoardGrid.Children.Remove(flying);
+                OverlayCanvas.Children.Remove(flying);
                 RefreshBoard();
             };
 
@@ -870,7 +922,22 @@ namespace MyGames.Desktop.Controls
             flying.BeginAnimation(Canvas.TopProperty, animY);
         }
 
-        #endregion
+        /// <summary>
+        /// Đặt lại bàn cờ về trạng thái ban đầu và cập nhật lại giao diện.
+        /// </summary>
+        public void ResetBoardDisplay()
+        {
+            BoardState.Reset();    // reset toàn bộ quân về vị trí khởi đầu
+            _selectedButton = null;
+            _lastFrom = null;
+            _lastTo = null;
+
+            // reset lượt
+            _currentTurn = PlayerColor.None;
+            _isPlayerColorChosen = false;
+
+            RefreshBoard();        // vẽ lại giao diện
+        }
     }
 
     /// <summary>
@@ -880,11 +947,25 @@ namespace MyGames.Desktop.Controls
     {
         public string From { get; }
         public string To { get; }
-
         public MoveSelectedEventArgs(string from, string to)
         {
             From = from;
             To = to;
         }
     }
+
+    public class PromotionEventArgs : EventArgs
+    {
+        public bool IsWhite { get; }
+        public string From { get; }
+        public string To { get; }
+
+        public PromotionEventArgs(bool isWhite, string from, string to)
+        {
+            IsWhite = isWhite;
+            From = from;
+            To = to;
+        }
+    }
+
 }

@@ -1,0 +1,175 @@
+﻿[2025-10-21 00:40:53.227] [INFO] ✅ Internal web server listening at http://127.0.0.1:54546
+[2025-10-21 00:40:53.801] [INFO] Player color chosen: None
+[2025-10-21 00:40:58.968] [INFO] Player color chosen: White
+[2025-10-21 00:41:05.216] [INFO] Người chơi chọn e2 → e4
+[2025-10-21 00:41:05.223] [INFO] HighlightLastMove_Start
+[2025-10-21 00:41:05.225] [INFO] HighlightLastMove_End
+[2025-10-21 00:41:05.229] [INFO] Đã di chuyển: e2e4
+[2025-10-21 00:41:05.230] [INFO] Trạng thái bàn hiện tại:
+r n b q k b n r
+p p p p p p p p
+. . . . . . . .
+. . . . . . . .
+. . . . P . . .
+. . . . . . . .
+P P P P . P P P
+R N B Q K B N R
+[2025-10-21 00:41:05.232] [INFO] 🧠 Bắt đầu AnalyzeBoardAsync()...
+[2025-10-21 00:41:05.234] [WARN] ⚠ StockfishService tồn tại nhưng engine chưa chạy.
+[2025-10-21 00:41:05.234] [WARN] ⚙ Stockfish chưa chạy — tiến hành khởi động...
+[2025-10-21 00:41:05.238] [INFO] 🚀 Stockfish started (PID=17052)
+[2025-10-21 00:41:05.255] [INFO] [Stockfish] Stockfish 17.1 by the Stockfish developers (see AUTHORS file)
+[2025-10-21 00:41:05.464] [INFO] [Stockfish] id name Stockfish 17.1
+[2025-10-21 00:41:05.464] [INFO] [Stockfish] id author the Stockfish developers (see AUTHORS file)
+[2025-10-21 00:41:05.465] [INFO] [Stockfish] 
+[2025-10-21 00:41:05.465] [INFO] [Stockfish] option name Debug Log File type string default <empty>
+[2025-10-21 00:41:05.465] [INFO] [Stockfish] option name NumaPolicy type string default auto
+[2025-10-21 00:41:05.465] [INFO] [Stockfish] option name Threads type spin default 1 min 1 max 1024
+[2025-10-21 00:41:05.466] [INFO] [Stockfish] option name Hash type spin default 16 min 1 max 33554432
+[2025-10-21 00:41:05.466] [INFO] [Stockfish] option name Clear Hash type button
+[2025-10-21 00:41:05.466] [INFO] [Stockfish] option name Ponder type check default false
+[2025-10-21 00:41:05.466] [INFO] [Stockfish] option name MultiPV type spin default 1 min 1 max 256
+[2025-10-21 00:41:05.466] [INFO] [Stockfish] option name Skill Level type spin default 20 min 0 max 20
+[2025-10-21 00:41:05.467] [INFO] [Stockfish] option name Move Overhead type spin default 10 min 0 max 5000
+[2025-10-21 00:41:05.467] [INFO] [Stockfish] option name nodestime type spin default 0 min 0 max 10000
+[2025-10-21 00:41:05.467] [INFO] [Stockfish] option name UCI_Chess960 type check default false
+[2025-10-21 00:41:05.468] [INFO] [Stockfish] option name UCI_LimitStrength type check default false
+[2025-10-21 00:41:05.468] [INFO] [Stockfish] option name UCI_Elo type spin default 1320 min 1320 max 3190
+[2025-10-21 00:41:05.468] [INFO] [Stockfish] option name UCI_ShowWDL type check default false
+[2025-10-21 00:41:05.468] [INFO] [Stockfish] option name SyzygyPath type string default <empty>
+[2025-10-21 00:41:05.469] [INFO] [Stockfish] option name SyzygyProbeDepth type spin default 1 min 1 max 100
+[2025-10-21 00:41:05.469] [INFO] [Stockfish] option name Syzygy50MoveRule type check default true
+[2025-10-21 00:41:05.469] [INFO] [Stockfish] option name SyzygyProbeLimit type spin default 7 min 0 max 7
+[2025-10-21 00:41:05.469] [INFO] [Stockfish] option name EvalFile type string default nn-1c0000000000.nnue
+[2025-10-21 00:41:05.470] [INFO] [Stockfish] option name EvalFileSmall type string default nn-37f18f62d772.nnue
+[2025-10-21 00:41:05.470] [INFO] [Stockfish] uciok
+[2025-10-21 00:41:05.470] [INFO] ✅ Stockfish sẵn sàng nhận lệnh UCI.
+[2025-10-21 00:41:05.471] [INFO] HighlightLastMove_Start
+[2025-10-21 00:41:05.471] [INFO] HighlightLastMove_End
+[2025-10-21 00:41:05.796] [INFO] 📄 FEN hiện tại: 
+[2025-10-21 00:41:05.796] [INFO] ♟ Moves hiện tại: e2e4
+[2025-10-21 00:41:05.797] [INFO] 🔍 Bắt đầu phân tích (depth=12)...
+[2025-10-21 00:41:05.798] [INFO] ♟ [DEBUG] >>> BẮT ĐẦU PHÂN TÍCH depth=12 <<<
+[2025-10-21 00:41:05.801] [INFO] ➡ [00:41:05.801] Gửi: ucinewgame
+[2025-10-21 00:41:05.803] [INFO] ➡ [00:41:05.803] Gửi: isready
+[2025-10-21 00:41:05.805] [INFO] [Stockfish] readyok
+[2025-10-21 00:41:05.806] [INFO] ⬅ Hoàn tất isready: readyok
+
+[2025-10-21 00:41:05.807] [INFO] ➡ [00:41:05.807] Gửi: position startpos moves e2e4
+[2025-10-21 00:41:05.807] [INFO] 🧠 Gửi lệnh 'go depth'...
+[2025-10-21 00:41:05.808] [INFO] ➡ [00:41:05.808] Gửi: go depth 12
+[2025-10-21 00:41:05.809] [INFO] [Stockfish] info string Available processors: 0-7
+[2025-10-21 00:41:05.809] [INFO] [Stockfish] info string Using 1 thread
+[2025-10-21 00:41:05.810] [INFO] [Stockfish] info string NNUE evaluation using nn-1c0000000000.nnue (133MiB, (22528, 3072, 15, 32, 1))
+[2025-10-21 00:41:05.811] [INFO] [Stockfish] info string NNUE evaluation using nn-37f18f62d772.nnue (6MiB, (22528, 128, 15, 32, 1))
+[2025-10-21 00:41:05.811] [INFO] [Stockfish] info depth 1 seldepth 4 multipv 1 score cp -27 nodes 24 nps 24000 hashfull 0 tbhits 0 time 1 pv e7e5
+[2025-10-21 00:41:05.812] [INFO] [Stockfish] info depth 2 seldepth 3 multipv 1 score cp -20 nodes 48 nps 48000 hashfull 0 tbhits 0 time 1 pv e7e5
+[2025-10-21 00:41:05.812] [INFO] [Stockfish] info depth 3 seldepth 4 multipv 1 score cp -20 nodes 72 nps 72000 hashfull 0 tbhits 0 time 1 pv e7e5 a2a3 a7a6
+[2025-10-21 00:41:05.813] [INFO] [Stockfish] info depth 4 seldepth 5 multipv 1 score cp -8 nodes 134 nps 134000 hashfull 0 tbhits 0 time 1 pv e7e5
+[2025-10-21 00:41:05.814] [INFO] [Stockfish] info depth 5 seldepth 7 multipv 1 score cp -7 nodes 765 nps 765000 hashfull 0 tbhits 0 time 1 pv c7c6 g1f3 d7d5
+[2025-10-21 00:41:05.814] [INFO] [Stockfish] info depth 6 seldepth 10 multipv 1 score cp -34 nodes 3031 nps 505166 hashfull 1 tbhits 0 time 6 pv c7c5
+[2025-10-21 00:41:05.815] [INFO] [Stockfish] info depth 7 seldepth 9 multipv 1 score cp -35 nodes 3759 nps 537000 hashfull 1 tbhits 0 time 7 pv e7e5 g1f3 b8c6 d2d4 e5d4 f3d4
+[2025-10-21 00:41:05.819] [INFO] [Stockfish] info depth 8 seldepth 14 multipv 1 score cp -49 nodes 7465 nps 678636 hashfull 1 tbhits 0 time 11 pv c7c5 b1c3 e7e6 g1f3 b8c6 d2d4 c5d4 f3d4
+[2025-10-21 00:41:05.823] [INFO] [Stockfish] info depth 9 seldepth 14 multipv 1 score cp -49 nodes 10144 nps 676266 hashfull 3 tbhits 0 time 15 pv e7e5 g1f3 b8c6 b1c3 f8b4 c3d5 b4c5 d2d4 c5d4 f3d4 c6d4
+[2025-10-21 00:41:05.826] [INFO] [Stockfish] info depth 10 seldepth 14 multipv 1 score cp -52 nodes 11559 nps 679941 hashfull 4 tbhits 0 time 17 pv e7e5 g1f3 b8c6 b1c3 f8b4 c3d5 b4c5 d2d4 c5d4 c2c3
+[2025-10-21 00:41:05.833] [INFO] [Stockfish] info depth 11 seldepth 20 multipv 1 score cp -46 nodes 16637 nps 665480 hashfull 5 tbhits 0 time 25 pv e7e5 g1f3 b8c6 b1c3 g8f6 d2d4 e5d4 f3d4 f8b4 d4c6 b7c6
+[2025-10-21 00:41:05.843] [INFO] [Stockfish] info depth 12 seldepth 19 multipv 1 score cp -46 nodes 24069 nps 707911 hashfull 7 tbhits 0 time 34 pv e7e5 g1f3 b8c6 b1c3 g8f6 f1b5 f8c5 e1g1 e8g8 b5c6 d7c6 f3e5
+[2025-10-21 00:41:05.843] [INFO] [Stockfish] bestmove e7e5 ponder g1f3
+[2025-10-21 00:41:05.844] [INFO] ⬅ Hoàn tất go depth 12: info string Available processors: 0-7
+info string Using 1 thread
+info string NNUE evaluation using nn-1c0000000000.nnue (133MiB, (22528, 3072, 15, 32, 1))
+info string NNUE evaluation using nn-37f18f62d772.nnue (6MiB, (22528, 128, 15, 32, 1))
+info depth 1 seldepth 4 multipv 1 score cp -27 nodes 24 nps 24000 hashfull 0 tbhits 0 time 1 pv e7e5
+info depth 2 seldepth 3 multipv 1 score cp -20 nodes 48 nps 48000 hashfull 0 tbhits 0 time 1 pv e7e5
+info depth 3 seldepth 4 multipv 1 score cp -20 nodes 72 nps 72000 hashfull 0 tbhits 0 time 1 pv e7e5 a2a3 a7a6
+info depth 4 seldepth 5 multipv 1 score cp -8 nodes 134 nps 134000 hashfull 0 tbhits 0 time 1 pv e7e5
+info depth 5 seldepth 7 multipv 1 score cp -7 nodes 765 nps 765000 hashfull 0 tbhits 0 time 1 pv c7c6 g1f3 d7d5
+info depth 6 seldepth 10 multipv 1 score cp -34 nodes 3031 nps 505166 hashfull 1 tbhits 0 time 6 pv c7c5
+info depth 7 seldepth 9 multipv 1 score cp -35 nodes 3759 nps 537000 hashfull 1 tbhits 0 time 7 pv e7e5 g1f3 b8c6 d2d4 e5d4 f3d4
+info depth 8 seldepth 14 multipv 1 score cp -49 nodes 7465 nps 678636 hashfull 1 tbhits 0 time 11 pv c7c5 b1c3 e7e6 g1f3 b8c6 d2d4 c5d4 f3d4
+info depth 9 seldepth 14 multipv 1 score cp -49 nodes 10144 nps 676266 hashfull 3 tbhits 0 time 15 pv e7e5 g1f3 b8c6 b1c3 f8b4 c3d5 b4c5 d2d4 c5d4 f3d4 c6d4
+info depth 10 seldepth 14 multipv 1 score cp -52 nodes 11559 nps 679941 hashfull 4 tbhits 0 time 17 pv e7e5 g1f3 b8c6 b1c3 f8b4 c3d5 b4c5 d2d4 c5d4 c2c3
+info depth 11 seldepth 20 multipv 1 score cp -46 nodes 16637 nps 665480 hashfull 5 tbhits 0 time 25 pv e7e5 g1f3 b8c6 b1c3 g8f6 d2d4 e5d4 f3d4 f8b4 d4c6 b7c6
+info depth 12 seldepth 19 multipv 1 score cp -46 nodes 24069 nps 707911 hashfull 7 tbhits 0 time 34 pv e7e5 g1f3 b8c6 b1c3 g8f6 f1b5 f8c5 e1g1 e8g8 b5c6 d7c6 f3e5
+bestmove e7e5 ponder g1f3
+
+[2025-10-21 00:41:05.845] [INFO] 💡 [DEBUG] Bestmove từ engine: bestmove e7e5 ponder g1f3
+[2025-10-21 00:41:05.845] [INFO] ✅ Stockfish đề xuất: e7e5
+[2025-10-21 00:41:13.223] [INFO] Đối thủ đi d7 → d5
+[2025-10-21 00:41:13.225] [INFO] HighlightLastMove_Start
+[2025-10-21 00:41:13.226] [INFO] HighlightLastMove_End
+[2025-10-21 00:41:13.228] [INFO] Đã cập nhật (opponent) move #2: d7d5
+[2025-10-21 00:41:13.229] [INFO] HighlightLastMove_Start
+[2025-10-21 00:41:13.230] [INFO] HighlightLastMove_End
+[2025-10-21 00:41:13.230] [INFO] HighlightLastMove_Start
+[2025-10-21 00:41:13.230] [INFO] HighlightLastMove_End
+[2025-10-21 00:41:19.623] [INFO] Người chơi chọn f2 → f4
+[2025-10-21 00:41:19.624] [INFO] HighlightLastMove_Start
+[2025-10-21 00:41:19.625] [INFO] HighlightLastMove_End
+[2025-10-21 00:41:19.625] [INFO] Đã di chuyển: f2f4
+[2025-10-21 00:41:19.626] [INFO] Trạng thái bàn hiện tại:
+r n b q k b n r
+p p p . p p p p
+. . . . . . . .
+. . . p . . . .
+. . . . P P . .
+. . . . . . . .
+P P P P . . P P
+R N B Q K B N R
+[2025-10-21 00:41:19.626] [INFO] 🧠 Bắt đầu AnalyzeBoardAsync()...
+[2025-10-21 00:41:19.626] [INFO] 📄 FEN hiện tại: 
+[2025-10-21 00:41:19.626] [INFO] ♟ Moves hiện tại: e2e4 d7d5 f2f4
+[2025-10-21 00:41:19.626] [INFO] 🔍 Bắt đầu phân tích (depth=12)...
+[2025-10-21 00:41:19.627] [INFO] ♟ [DEBUG] >>> BẮT ĐẦU PHÂN TÍCH depth=12 <<<
+[2025-10-21 00:41:19.627] [INFO] HighlightLastMove_Start
+[2025-10-21 00:41:19.627] [INFO] HighlightLastMove_End
+[2025-10-21 00:41:19.628] [INFO] ➡ [00:41:19.628] Gửi: ucinewgame
+[2025-10-21 00:41:19.628] [INFO] ➡ [00:41:19.628] Gửi: isready
+[2025-10-21 00:41:19.630] [INFO] [Stockfish] readyok
+[2025-10-21 00:41:19.642] [INFO] ⬅ Hoàn tất isready: readyok
+
+[2025-10-21 00:41:19.643] [INFO] ➡ [00:41:19.643] Gửi: position startpos moves e2e4 d7d5 f2f4
+[2025-10-21 00:41:19.644] [INFO] 🧠 Gửi lệnh 'go depth'...
+[2025-10-21 00:41:19.644] [INFO] ➡ [00:41:19.644] Gửi: go depth 12
+[2025-10-21 00:41:19.644] [INFO] [Stockfish] info string Available processors: 0-7
+[2025-10-21 00:41:19.645] [INFO] [Stockfish] info string Using 1 thread
+[2025-10-21 00:41:19.645] [INFO] [Stockfish] info string NNUE evaluation using nn-1c0000000000.nnue (133MiB, (22528, 3072, 15, 32, 1))
+[2025-10-21 00:41:19.646] [INFO] [Stockfish] info string NNUE evaluation using nn-37f18f62d772.nnue (6MiB, (22528, 128, 15, 32, 1))
+[2025-10-21 00:41:19.647] [INFO] [Stockfish] info depth 1 seldepth 2 multipv 1 score cp 147 nodes 29 nps 29000 hashfull 0 tbhits 0 time 1 pv d5e4
+[2025-10-21 00:41:19.647] [INFO] [Stockfish] info depth 2 seldepth 4 multipv 1 score cp 190 nodes 63 nps 63000 hashfull 0 tbhits 0 time 1 pv d5e4
+[2025-10-21 00:41:19.648] [INFO] [Stockfish] info depth 3 seldepth 4 multipv 1 score cp 220 nodes 101 nps 101000 hashfull 0 tbhits 0 time 1 pv d5e4
+[2025-10-21 00:41:19.648] [INFO] [Stockfish] info depth 4 seldepth 8 multipv 1 score cp 213 nodes 233 nps 233000 hashfull 0 tbhits 0 time 1 pv d5e4 d2d3 g8f6
+[2025-10-21 00:41:19.649] [INFO] [Stockfish] info depth 5 seldepth 13 multipv 1 score cp 108 nodes 501 nps 501000 hashfull 0 tbhits 0 time 1 pv d5e4 b1c3 g8f6 d2d3 e4d3 f1d3
+[2025-10-21 00:41:19.649] [INFO] [Stockfish] info depth 6 seldepth 7 multipv 1 score cp 107 nodes 727 nps 727000 hashfull 0 tbhits 0 time 1 pv d5e4 b1c3 g8f6 d2d3 e4d3 f1d3
+[2025-10-21 00:41:19.650] [INFO] [Stockfish] info depth 7 seldepth 8 multipv 1 score cp 106 nodes 1051 nps 525500 hashfull 0 tbhits 0 time 2 pv d5e4 b1c3 g8f6 d2d3 e4d3 f1d3
+[2025-10-21 00:41:19.651] [INFO] [Stockfish] info depth 8 seldepth 9 multipv 1 score cp 115 nodes 1227 nps 613500 hashfull 0 tbhits 0 time 2 pv d5e4 b1c3 g8f6 d2d3 e4d3 f1d3
+[2025-10-21 00:41:19.651] [INFO] [Stockfish] info depth 9 seldepth 11 multipv 1 score cp 152 nodes 1476 nps 738000 hashfull 0 tbhits 0 time 2 pv d5e4 b1c3 g8f6 d2d3 e4d3 f1d3 b8c6 a2a3
+[2025-10-21 00:41:19.652] [INFO] [Stockfish] info depth 10 seldepth 19 multipv 1 score cp 154 nodes 3521 nps 440125 hashfull 0 tbhits 0 time 8 pv d5e4 b1c3 g8f6 d2d3 c8g4 d1d2 e4d3 f1d3 e7e6 h2h3 g4f5 d3f5 e6f5
+[2025-10-21 00:41:19.653] [INFO] [Stockfish] info depth 11 seldepth 16 multipv 1 score cp 148 nodes 4074 nps 452666 hashfull 0 tbhits 0 time 9 pv d5e4 b1c3 g8f6 d2d3 c8f5 d3e4 d8d1 e1d1 f6e4 c3e4 f5e4 g1f3 b8c6
+[2025-10-21 00:41:19.662] [INFO] [Stockfish] info depth 12 seldepth 20 multipv 1 score cp 151 nodes 9726 nps 572117 hashfull 3 tbhits 0 time 17 pv d5e4 b1c3 g8f6 d2d3 c8g4 d1d2 e4d3 f1d3 e7e6 h2h3 g4f5 d3f5 e6f5 d2e2 d8e7
+[2025-10-21 00:41:19.662] [INFO] [Stockfish] bestmove d5e4 ponder b1c3
+[2025-10-21 00:41:19.663] [INFO] ⬅ Hoàn tất go depth 12: info string Available processors: 0-7
+info string Using 1 thread
+info string NNUE evaluation using nn-1c0000000000.nnue (133MiB, (22528, 3072, 15, 32, 1))
+info string NNUE evaluation using nn-37f18f62d772.nnue (6MiB, (22528, 128, 15, 32, 1))
+info depth 1 seldepth 2 multipv 1 score cp 147 nodes 29 nps 29000 hashfull 0 tbhits 0 time 1 pv d5e4
+info depth 2 seldepth 4 multipv 1 score cp 190 nodes 63 nps 63000 hashfull 0 tbhits 0 time 1 pv d5e4
+info depth 3 seldepth 4 multipv 1 score cp 220 nodes 101 nps 101000 hashfull 0 tbhits 0 time 1 pv d5e4
+info depth 4 seldepth 8 multipv 1 score cp 213 nodes 233 nps 233000 hashfull 0 tbhits 0 time 1 pv d5e4 d2d3 g8f6
+info depth 5 seldepth 13 multipv 1 score cp 108 nodes 501 nps 501000 hashfull 0 tbhits 0 time 1 pv d5e4 b1c3 g8f6 d2d3 e4d3 f1d3
+info depth 6 seldepth 7 multipv 1 score cp 107 nodes 727 nps 727000 hashfull 0 tbhits 0 time 1 pv d5e4 b1c3 g8f6 d2d3 e4d3 f1d3
+info depth 7 seldepth 8 multipv 1 score cp 106 nodes 1051 nps 525500 hashfull 0 tbhits 0 time 2 pv d5e4 b1c3 g8f6 d2d3 e4d3 f1d3
+info depth 8 seldepth 9 multipv 1 score cp 115 nodes 1227 nps 613500 hashfull 0 tbhits 0 time 2 pv d5e4 b1c3 g8f6 d2d3 e4d3 f1d3
+info depth 9 seldepth 11 multipv 1 score cp 152 nodes 1476 nps 738000 hashfull 0 tbhits 0 time 2 pv d5e4 b1c3 g8f6 d2d3 e4d3 f1d3 b8c6 a2a3
+info depth 10 seldepth 19 multipv 1 score cp 154 nodes 3521 nps 440125 hashfull 0 tbhits 0 time 8 pv d5e4 b1c3 g8f6 d2d3 c8g4 d1d2 e4d3 f1d3 e7e6 h2h3 g4f5 d3f5 e6f5
+info depth 11 seldepth 16 multipv 1 score cp 148 nodes 4074 nps 452666 hashfull 0 tbhits 0 time 9 pv d5e4 b1c3 g8f6 d2d3 c8f5 d3e4 d8d1 e1d1 f6e4 c3e4 f5e4 g1f3 b8c6
+info depth 12 seldepth 20 multipv 1 score cp 151 nodes 9726 nps 572117 hashfull 3 tbhits 0 time 17 pv d5e4 b1c3 g8f6 d2d3 c8g4 d1d2 e4d3 f1d3 e7e6 h2h3 g4f5 d3f5 e6f5 d2e2 d8e7
+bestmove d5e4 ponder b1c3
+
+[2025-10-21 00:41:19.663] [INFO] 💡 [DEBUG] Bestmove từ engine: bestmove d5e4 ponder b1c3
+[2025-10-21 00:41:19.664] [INFO] ✅ Stockfish đề xuất: d5e4
+[2025-10-21 00:41:21.007] [INFO] Player color chosen: None
+[2025-10-21 00:41:21.008] [INFO] HighlightLastMove_Start
+[2025-10-21 00:41:21.009] [INFO] HighlightLastMove_End
+[2025-10-21 00:41:21.010] [INFO] HighlightLastMove_Start
+[2025-10-21 00:41:21.010] [INFO] HighlightLastMove_End

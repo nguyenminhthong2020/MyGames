@@ -1,30 +1,34 @@
 ﻿<UserControl x:Class="MyGames.Desktop.Controls.ChessBoardControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             mc:Ignorable="d"
-             d:DesignHeight="400"
-             d:DesignWidth="400"
-             x:Name="RootControl">
-
-    <!--<Grid>
-        --><!--<UniformGrid x:Name="BoardGrid"
-                     Rows="8"
-                     Columns="8" />-->
-        <!-- Root grid: left column for rank labels, bottom row for file labels --><!--
-        <Grid x:Name="RootGrid">
-            --><!-- dynamic content created in code-behind --><!--
-        </Grid>
-    </Grid>-->
-
-    <Border x:Name="BoardBorder"
-            BorderThickness="2"
-            BorderBrush="Transparent"
-            CornerRadius="4"
-            Padding="3"
-            SnapsToDevicePixels="True">
-        <Grid x:Name="BoardGrid" />
-    </Border>
-
+             xmlns:local="clr-namespace:MyGames.Desktop.Controls"
+             x:Name="ChessBoardRoot"
+             Width="Auto"
+             Height="Auto"
+             SizeChanged="UserControl_SizeChanged">
+    <!-- Hiệu ứng đổ bóng -->
+    <UserControl.Resources>
+        <DropShadowEffect x:Key="DropShadowEffect"
+                          Color="Black"
+                          BlurRadius="10"
+                          ShadowDepth="3"
+                          Opacity="0.5" />
+    </UserControl.Resources>
+    <Grid Background="Transparent"
+          Margin="0">
+        <Border CornerRadius="10"
+                BorderBrush="Transparent"
+                BorderThickness="2"
+                Padding="0"
+                Background="Transparent"
+                Effect="{DynamicResource DropShadowEffect}">
+            <Grid>
+                <Grid x:Name="BoardGrid"
+                      SnapsToDevicePixels="True" />
+                <Canvas x:Name="OverlayCanvas"
+                        IsHitTestVisible="False"
+                        Focusable="False" />
+            </Grid>
+        </Border>
+    </Grid>
 </UserControl>

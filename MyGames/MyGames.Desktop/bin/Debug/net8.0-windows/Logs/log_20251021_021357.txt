@@ -1,0 +1,51 @@
+﻿[2025-10-21 02:13:57.306] [INFO] ✅ Internal web server listening at http://127.0.0.1:54546
+[2025-10-21 02:13:57.869] [INFO] Player color chosen: None
+[2025-10-21 02:14:00.719] [INFO] Player color chosen: White
+[2025-10-21 02:14:05.872] [INFO] Người chơi chọn e2 → e4
+[2025-10-21 02:14:05.878] [INFO] HighlightLastMove_Start
+[2025-10-21 02:14:05.880] [INFO] HighlightLastMove_End
+[2025-10-21 02:14:05.896] [INFO] Ván cờ kết thúc sau người chơi move: Draw
+[2025-10-21 02:14:05.896] [INFO] HighlightLastMove_Start
+[2025-10-21 02:14:05.896] [INFO] HighlightLastMove_End
+[2025-10-21 02:14:09.456] [INFO] Đối thủ đi e7 → e6
+[2025-10-21 02:14:09.456] [WARN] ProcessOpponentMove: Ván cờ đã kết thúc, bỏ qua move từ opponent.
+[2025-10-21 02:14:09.459] [INFO] HighlightLastMove_Start
+[2025-10-21 02:14:09.459] [INFO] HighlightLastMove_End
+[2025-10-21 02:14:09.460] [INFO] HighlightLastMove_Start
+[2025-10-21 02:14:09.460] [INFO] HighlightLastMove_End
+[2025-10-21 02:14:17.502] [INFO] Đối thủ đi e7 → e6
+[2025-10-21 02:14:17.503] [WARN] ProcessOpponentMove: Ván cờ đã kết thúc, bỏ qua move từ opponent.
+[2025-10-21 02:14:17.504] [INFO] HighlightLastMove_Start
+[2025-10-21 02:14:17.505] [INFO] HighlightLastMove_End
+[2025-10-21 02:14:17.505] [INFO] HighlightLastMove_Start
+[2025-10-21 02:14:17.505] [INFO] HighlightLastMove_End
+[2025-10-21 02:14:19.078] [INFO] Đối thủ đi e7 → e6
+[2025-10-21 02:14:19.079] [WARN] ProcessOpponentMove: Ván cờ đã kết thúc, bỏ qua move từ opponent.
+[2025-10-21 02:14:19.080] [INFO] HighlightLastMove_Start
+[2025-10-21 02:14:19.080] [INFO] HighlightLastMove_End
+[2025-10-21 02:14:19.081] [INFO] HighlightLastMove_Start
+[2025-10-21 02:14:19.081] [INFO] HighlightLastMove_End
+[2025-10-21 02:14:22.846] [INFO] Đối thủ đi e7 → e6
+[2025-10-21 02:14:22.846] [WARN] ProcessOpponentMove: Ván cờ đã kết thúc, bỏ qua move từ opponent.
+[2025-10-21 02:14:22.849] [INFO] HighlightLastMove_Start
+[2025-10-21 02:14:22.849] [INFO] HighlightLastMove_End
+[2025-10-21 02:14:22.849] [INFO] HighlightLastMove_Start
+[2025-10-21 02:14:22.850] [INFO] HighlightLastMove_End
+[2025-10-21 02:14:24.350] [INFO] Đối thủ đi e7 → e5
+[2025-10-21 02:14:24.351] [WARN] ProcessOpponentMove: Ván cờ đã kết thúc, bỏ qua move từ opponent.
+[2025-10-21 02:14:24.353] [INFO] HighlightLastMove_Start
+[2025-10-21 02:14:24.354] [INFO] HighlightLastMove_End
+[2025-10-21 02:14:24.354] [INFO] HighlightLastMove_Start
+[2025-10-21 02:14:24.354] [INFO] HighlightLastMove_End
+[2025-10-21 02:14:25.974] [INFO] Đối thủ đi e7 → e6
+[2025-10-21 02:14:25.975] [WARN] ProcessOpponentMove: Ván cờ đã kết thúc, bỏ qua move từ opponent.
+[2025-10-21 02:14:25.976] [INFO] HighlightLastMove_Start
+[2025-10-21 02:14:25.976] [INFO] HighlightLastMove_End
+[2025-10-21 02:14:25.977] [INFO] HighlightLastMove_Start
+[2025-10-21 02:14:25.977] [INFO] HighlightLastMove_End
+[2025-10-21 02:14:32.422] [INFO] Đối thủ đi f7 → f6
+[2025-10-21 02:14:32.423] [WARN] ProcessOpponentMove: Ván cờ đã kết thúc, bỏ qua move từ opponent.
+[2025-10-21 02:14:32.424] [INFO] HighlightLastMove_Start
+[2025-10-21 02:14:32.424] [INFO] HighlightLastMove_End
+[2025-10-21 02:14:32.425] [INFO] HighlightLastMove_Start
+[2025-10-21 02:14:32.425] [INFO] HighlightLastMove_End

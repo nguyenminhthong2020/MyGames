@@ -1,0 +1,7 @@
+﻿[2025-10-21 02:07:47.334] [INFO] ✅ Internal web server listening at http://127.0.0.1:54546
+[2025-10-21 02:07:48.217] [INFO] Player color chosen: None
+[2025-10-21 02:08:08.039] [INFO] Người chơi chọn e2 → e4
+[2025-10-21 02:08:08.040] [WARN] Chưa chọn bên, không thể đi.
+[2025-10-21 02:08:13.368] [INFO] Player color chosen: White
+[2025-10-21 02:08:13.371] [INFO] HighlightLastMove_Start
+[2025-10-21 02:08:13.373] [INFO] HighlightLastMove_End

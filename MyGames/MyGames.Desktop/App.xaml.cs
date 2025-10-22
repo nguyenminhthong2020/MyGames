@@ -13,7 +13,7 @@ namespace MyGames.Desktop;
 public partial class App : Application
 {
     private IHost? _host;
-    public IServiceProvider Services => _host!.Services;
+    public static IServiceProvider ServiceProvider { get; private set; }
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -58,6 +58,8 @@ public partial class App : Application
             .Build();
 
         await _host.StartAsync();
+
+        ServiceProvider = _host.Services;
 
         var win = _host.Services.GetRequiredService<MainWindow>();
         win.Show();

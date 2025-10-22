@@ -1,0 +1,2 @@
+﻿[2025-10-21 22:00:44.936] [INFO] ✅ Internal web server listening at http://127.0.0.1:54546
+[2025-10-21 22:00:45.496] [INFO] Player color chosen: None

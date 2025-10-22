@@ -53,6 +53,22 @@
             "Microsoft.Extensions.Hosting": {
               "target": "Package",
               "version": "[8.0.1, )"
+            },
+            "SharpVectors": {
+              "target": "Package",
+              "version": "[1.8.5, )"
+            },
+            "SkiaSharp": {
+              "target": "Package",
+              "version": "[3.119.1, )"
+            },
+            "SkiaSharp.Views.WPF": {
+              "target": "Package",
+              "version": "[3.119.1, )"
+            },
+            "Svg.Skia": {
+              "target": "Package",
+              "version": "[3.2.1, )"
             }
           },
           "imports": [

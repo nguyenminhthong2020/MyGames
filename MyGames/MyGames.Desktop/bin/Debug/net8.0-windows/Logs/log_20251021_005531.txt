@@ -1,0 +1,11 @@
+﻿[2025-10-21 00:55:31.769] [INFO] ✅ Internal web server listening at http://127.0.0.1:54546
+[2025-10-21 00:55:32.364] [INFO] Player color chosen: None
+[2025-10-21 00:55:36.232] [INFO] Player color chosen: Black
+[2025-10-21 00:55:42.821] [INFO] Đối thủ đi e2 → e3
+[2025-10-21 00:55:42.825] [INFO] HighlightLastMove_Start
+[2025-10-21 00:55:42.826] [INFO] HighlightLastMove_End
+[2025-10-21 00:55:42.830] [INFO] Đã cập nhật (opponent) move #1: e2e3
+[2025-10-21 00:55:42.832] [INFO] HighlightLastMove_Start
+[2025-10-21 00:55:42.832] [INFO] HighlightLastMove_End
+[2025-10-21 00:55:42.833] [INFO] HighlightLastMove_Start
+[2025-10-21 00:55:42.833] [INFO] HighlightLastMove_End
