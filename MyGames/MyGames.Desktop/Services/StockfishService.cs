@@ -1,63 +1,68 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using MyGames.Desktop.Logs;
-using MyGames.Desktop.ViewModels;
+﻿using MyGames.Desktop.Logs;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using System.Windows;
+using System.Threading.Channels;
 
 namespace MyGames.Desktop.Services
 {
-    /// <summary>
-    /// Dịch vụ giao tiếp với engine Stockfish (chạy ở local).
-    /// Dùng để phân tích, gợi ý nước đi.
-    /// </summary>
+    public enum StockfishJobType
+    {
+        BestMove,
+        Evaluation,
+        CustomCommand
+    }
+
+    public class StockfishJob
+    {
+        public StockfishJobType Type { get; set; }
+        public string MovesOrFen { get; set; } = "";
+        public int Depth { get; set; } = 12;
+        public int TimeoutMs { get; set; } = 8000;
+        public Action<string>? OnCompleted { get; set; }
+    }
+
     public class StockfishService : IDisposable
     {
         private Process? _stockfishProcess;
         private StreamWriter? _inputWriter;
         private StreamReader? _outputReader;
+        private readonly LoggerService _logger;
+        private readonly AppSettings _appSettings;
 
-        private readonly object _lock = new();
+        // --- Engine queue ---
+        private readonly Channel<Func<Task>> _engineQueue = Channel.CreateUnbounded<Func<Task>>();
+        private readonly CancellationTokenSource _queueCts = new();
+        private readonly Task _queueWorkerTask;
 
         public bool IsRunning => _stockfishProcess != null && !_stockfishProcess.HasExited;
 
-        private readonly LoggerService _logger;
+        //private readonly Channel<StockfishJob> _jobQueue = Channel.CreateUnbounded<StockfishJob>();
+        //private readonly Task _jobWorker;
 
-        private readonly SemaphoreSlim _engineLock = new(1, 1);
-
-        public StockfishService(LoggerService logger)
+        public StockfishService(LoggerService logger, AppSettings appSettings)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
+            _logger = logger;
+            _appSettings = appSettings;
 
-        /// <summary>
-        /// Khởi động tiến trình Stockfish từ file thực thi.
-        /// </summary>
-        public void StartOld(string stockfishPath)
-        {
-            if (!File.Exists(stockfishPath))
-                throw new FileNotFoundException("Không tìm thấy file Stockfish tại", stockfishPath);
-
-            var startInfo = new ProcessStartInfo
+            //_queueWorkerTask = Task.Run(ProcessEngineQueueAsync);
+            //_jobWorker = Task.Run(ProcessStockfishJobsAsync);
+            Start(_appSettings.StockfishPath);
+            _ = Task.Run(async () =>
             {
-                FileName = stockfishPath,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
+                try
+                {
+                    await ProcessQueueAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error($"❌ ProcessQueueAsync chết ngay khi khởi tạo: {ex}");
+                }
+            });
 
-            _stockfishProcess = new Process { StartInfo = startInfo };
-            bool isSuccess = _stockfishProcess.Start();
-
-            _inputWriter = _stockfishProcess.StandardInput;
-            _outputReader = _stockfishProcess.StandardOutput;
-
-            // Gửi lệnh "uci" để kiểm tra kết nối engine
-            _inputWriter.WriteLine("uci");
-            _inputWriter.Flush();
         }
+
+        //========================= ENGINE CORE =========================
 
         public void Start(string stockfishPath)
         {
@@ -82,16 +87,16 @@ namespace MyGames.Desktop.Services
             _stockfishProcess = new Process { StartInfo = startInfo };
             _stockfishProcess.Start();
 
+            _stockfish = _stockfishProcess;
+
             _inputWriter = _stockfishProcess.StandardInput;
             _outputReader = _stockfishProcess.StandardOutput;
 
             _logger.Info($"🚀 Stockfish started (PID={_stockfishProcess.Id})");
 
-            // Gửi lệnh uci
             _inputWriter.WriteLine("uci");
             _inputWriter.Flush();
 
-            // Chờ phản hồi "uciok" trong 3s
             var startTime = DateTime.Now;
             string? line;
             bool uciOk = false;
@@ -116,269 +121,238 @@ namespace MyGames.Desktop.Services
             }
 
             if (!uciOk)
-            {
                 _logger.Warn("⚠ Stockfish không phản hồi 'uciok' trong 3 giây — có thể chưa sẵn sàng.");
-            }
             else
-            {
                 _logger.Info("✅ Stockfish sẵn sàng nhận lệnh UCI.");
-            }
         }
 
-        ///// <summary>
-        ///// Gửi command tới Stockfish và đọc phản hồi một cách an toàn (async, không dùng Peek()).
-        ///// - Nếu waitForBestMove == true => đọc tới khi thấy "bestmove".
-        ///// - Nếu waitForBestMove == false => đọc tới khi thấy "readyok" hoặc "uciok" (tùy command).
-        ///// Hàm có timeout để tránh treo vô hạn.
-        ///// </summary>
-        //public async Task<string> SendCommandAsyncOld(string command, int timeoutMs = 10_000, CancellationToken? externalToken = null, bool waitForBestMove = true)
-        //{
-        //    await _engineLock.WaitAsync();
-        //    try
-        //    {
-        //        if (!IsRunning)
-        //        {
-        //            _logger.Error("⚠ SendCommandAsync được gọi nhưng Stockfish chưa chạy hoặc đã thoát.");
-        //            throw new InvalidOperationException("Stockfish chưa được khởi động.");
-        //        }
+        //========================= QUEUE SYSTEM =========================
 
-        //        // Ghi lệnh tới stdin (async)
-        //        try
-        //        {
-        //            await _inputWriter!.WriteLineAsync(command).ConfigureAwait(false);
-        //            await _inputWriter.FlushAsync().ConfigureAwait(false);
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _logger.Error($"❌ Lỗi khi ghi lệnh vào Stockfish stdin: {ex.Message}");
-        //            throw;
-        //        }
-
-        //        _logger.Info($"➡ Gửi lệnh: {command} (waitForBestMove={waitForBestMove})");
-
-        //        var sb = new StringBuilder();
-        //        using var cts = new CancellationTokenSource(timeoutMs);
-        //        using var linked = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, externalToken ?? CancellationToken.None);
-        //        var token = linked.Token;
-
-        //        try
-        //        {
-        //            // ReadLineAsync luôn an toàn (không dùng Peek). Vòng lặp dừng khi token bị cancel hoặc gặp marker.
-        //            while (!token.IsCancellationRequested)
-        //            {
-        //                // Read next line (async). Nếu engine chưa trả dòng nào, ReadLineAsync sẽ await — nhưng sẽ bị hủy bởi token khi timeout.
-        //                string? line = await _outputReader!.ReadLineAsync().ConfigureAwait(false);
-
-        //                // Nếu null => stream đóng (hiếm khi xảy ra với engine chạy ngầm)
-        //                if (line == null)
-        //                {
-        //                    _logger.Warn("⚠ _outputReader returned null (stream có thể đã đóng).");
-        //                    break;
-        //                }
-
-        //                line = line.Trim();
-        //                if (!string.IsNullOrEmpty(line))
-        //                    _logger.Info($"[Stockfish] {line}");
-
-        //                sb.AppendLine(line);
-
-        //                // Quy tắc dừng:
-        //                if (waitForBestMove)
-        //                {
-        //                    // Trong chế độ chờ bestmove: dừng khi thấy bestmove
-        //                    if (line.StartsWith("bestmove", StringComparison.OrdinalIgnoreCase))
-        //                        break;
-        //                }
-        //                else
-        //                {
-        //                    // Không chờ bestmove: dừng khi thấy readyok / uciok
-        //                    if (string.Equals(line, "readyok", StringComparison.OrdinalIgnoreCase) ||
-        //                        string.Equals(line, "uciok", StringComparison.OrdinalIgnoreCase))
-        //                    {
-        //                        break;
-        //                    }
-
-        //                    // Một số lệnh (ví dụ ucinewgame) thường không trả gì — nên loop sẽ chờ tới timeout rồi thoát.
-        //                    // Chúng ta tiếp tục đọc nếu engine phát ra output khác (ví dụ option list sau 'uci').
-        //                }
-        //            }
-        //        }
-        //        catch (OperationCanceledException)
-        //        {
-        //            // timeout hoặc external token cancel
-        //            sb.AppendLine($"[timeout after {timeoutMs} ms]");
-        //            _logger.Warn($"⏱ SendCommandAsync('{command}') timed out after {timeoutMs} ms.");
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            sb.AppendLine($"[error: {ex.Message}]");
-        //            _logger.Error($"❌ Exception khi đọc response từ Stockfish: {ex}");
-        //        }
-
-        //        string result = sb.ToString();
-        //        _logger.Info($"⬅ Kết quả từ Stockfish ({command}): {result}");
-        //        return result;
-        //    }
-        //    finally
-        //    {
-        //        _engineLock.Release();
-        //    }
-        //}
-
-        //public async Task<string> GetBestMoveAsyncOld(string fenOrMoves, int depth = 15, int timeoutMs = 5000, CancellationToken? token = null)
-        //{
-        //    if (!IsRunning)
-        //        throw new InvalidOperationException("Stockfish chưa được khởi động.");
-
-        //    _logger.Info($"♟ Bắt đầu phân tích FEN/moves (depth={depth})");
-
-        //    // 0) đảm bảo engine sẵn sàng
-        //    await SendCommandAsync("ucinewgame", 1000, token, waitForBestMove: false);
-        //    await SendCommandAsync("isready", 2000, token, waitForBestMove: false);
-
-        //    // 1) chuẩn bị position
-        //    // tự động nhận biết FEN vs moves
-        //    string cmd;
-        //    if (!string.IsNullOrEmpty(fenOrMoves) && fenOrMoves.Contains('/'))
-        //    {
-        //        cmd = $"position fen {fenOrMoves}";
-        //    }
-        //    else if (!string.IsNullOrWhiteSpace(fenOrMoves))
-        //    {
-        //        cmd = $"position startpos moves {fenOrMoves}";
-        //    }
-        //    else
-        //    {
-        //        cmd = "position startpos";
-        //    }
+        private Process? _stockfish;
+        private readonly Channel<StockfishJob> _jobQueue = Channel.CreateUnbounded<StockfishJob>();
+        private readonly CancellationTokenSource _cts = new();
 
 
-        //    // gửi position nhưng KHÔNG chờ bestmove (position không tạo bestmove).
-        //    await SendCommandAsync(cmd, 2000, token, waitForBestMove: false);
-
-
-        //    // 2) Gọi go và chờ bestmove
-        //    string output = await SendCommandAsync($"go depth {depth}", timeoutMs, token, waitForBestMove: true);
-
-        //    if (string.IsNullOrWhiteSpace(output))
-        //    {
-        //        _logger.Warn("Stockfish không trả lời trong giới hạn thời gian.");
-        //        return "Error::(timeout hoặc không có phản hồi)";
-        //    }
-
-        //    foreach (var line in output.Split('\n'))
-        //    {
-        //        if (line.StartsWith("bestmove"))
-        //        {
-        //            _logger.Info($"💡 Gợi ý row: {line}");
-        //            return line;
-        //        }
-        //    }
-
-        //    _logger.Warn("⚠ Không tìm thấy 'bestmove' trong output.");
-        //    return "(timeout hoặc không tìm thấy bestmove)";
-        //}
-
-        public async Task<string> SendCommandAsync(
-    string command, int timeoutMs = 8000,
-    CancellationToken? externalToken = null,
-    bool waitForResponse = true)
+        // --------------------------
+        // Queue interface
+        // --------------------------
+        public async Task<string> EnqueueCommandAsync(StockfishJob job)
         {
-            await _engineLock.WaitAsync();
-            try
+            _logger.Info("📤 EnqueueCommandAsync bắt đầu");
+
+            var tcs = new TaskCompletionSource<string>();
+            job.OnCompleted = (result) => tcs.TrySetResult(result);
+            await _jobQueue.Writer.WriteAsync(job);
+
+            _logger.Info("🧾 Đã ghi job vào queue, chờ kết quả...");
+            var res = await tcs.Task.ConfigureAwait(false);
+            _logger.Info("📩 Nhận được kết quả từ queue");
+            return res;
+        }
+
+
+        // --------------------------
+        // Queue processor
+        // --------------------------
+        private async Task ProcessQueueAsync()
+        {
+            _logger.Info("▶️ ProcessQueueAsync bắt đầu");
+
+            await foreach (var job in _jobQueue.Reader.ReadAllAsync(_cts.Token))
             {
-                if (!IsRunning)
-                    throw new InvalidOperationException("Stockfish chưa được khởi động.");
-
-                await _inputWriter!.WriteLineAsync(command);
-                await _inputWriter.FlushAsync();
-                _logger.Info($"➡ [{DateTime.Now:HH:mm:ss.fff}] Gửi: {command}");
-
-                // Một số lệnh không có phản hồi (ucinewgame, position, setoption, stop)
-                if (!waitForResponse)
-                {
-                    return "[no wait]";
-                }
-
-                var sb = new StringBuilder();
-                using var cts = new CancellationTokenSource(timeoutMs);
-                using var linked = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, externalToken ?? CancellationToken.None);
-                var token = linked.Token;
-
+                _logger.Info("📬 Đã nhận được job từ queue");
                 try
                 {
-                    while (!token.IsCancellationRequested)
+                    string result = job.Type switch
                     {
-                        string? line = await _outputReader!.ReadLineAsync().ConfigureAwait(false);
-                        if (line == null) break;
-                        line = line.Trim();
-                        sb.AppendLine(line);
-                        if (!string.IsNullOrEmpty(line))
-                            _logger.Info($"[Stockfish] {line}");
+                        StockfishJobType.BestMove => await HandleBestMoveJob(job),
+                        StockfishJobType.Evaluation => await HandleEvalJob(job),
+                        StockfishJobType.CustomCommand => await HandleCustomJob(job),
+                        _ => "UnknownJob"
+                    };
 
-                        if (line.StartsWith("bestmove", StringComparison.OrdinalIgnoreCase) ||
-                            line.Equals("readyok", StringComparison.OrdinalIgnoreCase) ||
-                            line.Equals("uciok", StringComparison.OrdinalIgnoreCase))
-                            break;
-                    }
+                    _logger.Info("✅ Đã xử lý xong job");
+                    job.OnCompleted?.Invoke(result);
                 }
-                catch (OperationCanceledException)
+                catch (Exception ex)
                 {
-                    sb.AppendLine($"[timeout after {timeoutMs} ms]");
-                    _logger.Warn($"⏱ Timeout {command}");
+                    _logger.Error($"[ProcessQueue] Lỗi: {ex}");
+                    job.OnCompleted?.Invoke($"ERROR::{ex.Message}");
                 }
+            }
 
-                var result = sb.ToString();
-                _logger.Info($"⬅ Hoàn tất {command}: {result}");
-                return result;
-            }
-            finally
-            {
-                _engineLock.Release();
-            }
+            _logger.Warn("⚠️ ProcessQueueAsync kết thúc");
         }
 
-        public async Task<string> GetBestMoveAsync(string movesOrFen, int depth = 12,
-            int timeoutMs = 10000, CancellationToken? token = null)
+
+        // --------------------------
+        // Handler từng loại Job
+        // --------------------------
+        private async Task<string> HandleBestMoveJob(StockfishJob job)
         {
-            if (!IsRunning)
-                throw new InvalidOperationException("Stockfish chưa được khởi động.");
+            await SendCommandAsync("isready");
+            await WaitForResponseAsync(l => l == "readyok", 2000);
 
-            _logger.Info($"♟ [DEBUG] >>> BẮT ĐẦU PHÂN TÍCH depth={depth} <<<");
+            await SendCommandAsync("ucinewgame");
+            await SendCommandAsync($"position startpos moves {job.MovesOrFen}");
 
-            // Các lệnh không có phản hồi, chỉ gửi
-            await SendCommandAsync("ucinewgame", waitForResponse: false);
-            await SendCommandAsync("isready", 2000, token);
+            var output = await LowLevelSendAndReadAsync(
+                $"go depth {job.Depth}",
+                job.TimeoutMs,
+                line => line.StartsWith("bestmove", StringComparison.OrdinalIgnoreCase)
+            );
 
-            string posCmd = (!string.IsNullOrEmpty(movesOrFen) && movesOrFen.Contains('/'))
-                ? $"position fen {movesOrFen}"
-                : $"position startpos moves {movesOrFen}";
-            await SendCommandAsync(posCmd, waitForResponse: false);
+            return ParseBestMove(output) ?? "(none)";
+        }
 
-            _logger.Info("🧠 Gửi lệnh 'go depth'...");
-            string output = await SendCommandAsync($"go depth {depth}", timeoutMs, token);
+        private async Task<string> HandleEvalJob(StockfishJob job)
+        {
+            await SendCommandAsync("isready");
+            await WaitForResponseAsync(l => l == "readyok", 2000);
 
-            var lineBest = output.Split('\n').FirstOrDefault(l => l.StartsWith("bestmove"));
-            if (lineBest != null)
+            await SendCommandAsync($"position startpos moves {job.MovesOrFen}");
+
+            var output = await LowLevelSendAndReadAsync(
+                $"go depth {job.Depth}",
+                job.TimeoutMs,
+                line => line.StartsWith("bestmove", StringComparison.OrdinalIgnoreCase)
+            );
+
+            double? eval = ParseEval(output);
+            return eval?.ToString("F2") ?? "NaN";
+        }
+
+        private async Task<string> HandleCustomJob(StockfishJob job)
+        {
+            return await LowLevelSendAndReadAsync(
+                job.MovesOrFen,
+                job.TimeoutMs,
+                line => line == "readyok" || line.StartsWith("bestmove")
+            );
+        }
+
+        // --------------------------
+        // Core đọc/ghi
+        // --------------------------
+        private async Task SendCommandAsync(string command)
+        {
+            if (_inputWriter == null) return;
+            await _inputWriter.WriteLineAsync(command);
+            await _inputWriter.FlushAsync();
+        }
+
+        private async Task<string> LowLevelSendAndReadAsync(
+            string command,
+            int timeoutMs,
+            Func<string, bool> breakCondition)
+        {
+            if (_stockfish == null || _inputWriter == null || _outputReader == null)
+                throw new InvalidOperationException("Stockfish chưa khởi tạo.");
+
+            await _inputWriter.WriteLineAsync(command);
+            await _inputWriter.FlushAsync();
+
+            var sb = new StringBuilder();
+            using var cts = new CancellationTokenSource(timeoutMs);
+
+            try
             {
-                _logger.Info($"💡 [DEBUG] Bestmove từ engine: {lineBest}");
-                return lineBest;
+                while (!cts.Token.IsCancellationRequested)
+                {
+                    string? line = await _outputReader.ReadLineAsync().ConfigureAwait(false);
+                    if (line == null) break;
+                    line = line.Trim();
+                    if (line.Length == 0) continue;
+
+                    sb.AppendLine(line);
+                    // debug log:
+                    // Console.WriteLine($"[Stockfish] {line}");
+
+                    if (breakCondition(line))
+                        break;
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                sb.AppendLine("TIMEOUT");
             }
 
-            _logger.Warn($"⚠ [DEBUG] Engine không trả bestmove. Raw output:\n{output}");
-            return "(Không có gợi ý)";
+            return sb.ToString();
         }
 
-
-        public string GetBestMove(string fen, int depth = 15)
+        private async Task WaitForResponseAsync(Func<string, bool> breakCondition, int timeoutMs)
         {
-            return GetBestMoveAsync(fen, depth).GetAwaiter().GetResult();
+            using var cts = new CancellationTokenSource(timeoutMs);
+            while (!cts.Token.IsCancellationRequested)
+            {
+                string? line = await _outputReader!.ReadLineAsync().ConfigureAwait(false);
+                if (line == null) break;
+                line = line.Trim();
+                if (breakCondition(line)) break;
+            }
         }
+
+        private async Task DrainOutputAsync()
+        {
+            if (_outputReader == null) return;
+            while (_outputReader.Peek() >= 0)
+            {
+                string? line = await _outputReader.ReadLineAsync().ConfigureAwait(false);
+                if (string.IsNullOrWhiteSpace(line)) break;
+                // Console.WriteLine($"[Drain] {line}");
+            }
+        }
+
+        // --------------------------
+        // Parser helpers
+        // --------------------------
+        private static string? ParseBestMove(string output)
+        {
+            foreach (var line in output.Split('\n'))
+            {
+                if (line.StartsWith("bestmove", StringComparison.OrdinalIgnoreCase))
+                {
+                    var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    return parts.Length > 1 ? parts[1] : null;
+                }
+            }
+            return null;
+        }
+
+        private static double? ParseEval(string output)
+        {
+            var lines = output.Split('\n');
+            for (int i = lines.Length - 1; i >= 0; i--)
+            {
+                var line = lines[i];
+                if (line.Contains("score cp"))
+                {
+                    var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    int idx = Array.IndexOf(parts, "cp");
+                    if (idx >= 0 && idx + 1 < parts.Length &&
+                        double.TryParse(parts[idx + 1], out double cp))
+                        return cp / 100.0;
+                }
+                else if (line.Contains("score mate"))
+                {
+                    return line.Contains("score mate -") ? -9999 : 9999;
+                }
+            }
+            return null;
+        }
+
+
+
+        //========================= DISPOSE =========================
 
         public void Dispose()
         {
             try
             {
+                _queueCts.Cancel();
+                _engineQueue.Writer.TryComplete();
+                try { _queueWorkerTask?.Wait(300); } catch { }
+
                 if (IsRunning)
                 {
                     _logger.Info("🛑 Dừng Stockfish...");
@@ -387,7 +361,8 @@ namespace MyGames.Desktop.Services
                     _stockfishProcess?.WaitForExit(1000);
                 }
             }
-            catch (Exception ex){
+            catch (Exception ex)
+            {
                 _logger.Error($"Lỗi khi dispose Stockfish: {ex.Message}");
             }
             finally

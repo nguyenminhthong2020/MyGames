@@ -1,0 +1,37 @@
+{
+  "gameId": "324e503b-34e8-4a5a-9957-1635827716c3",
+  "side": "Black",
+  "moves": [
+    {
+      "MoveNumber": 1,
+      "MoveNotation": "a2a4",
+      "Timestamp": "2025-10-23T22:11:08.8413583+07:00",
+      "Player": 1
+    },
+    {
+      "MoveNumber": 2,
+      "MoveNotation": "a2a5",
+      "Timestamp": "2025-10-23T22:11:09.0837873+07:00",
+      "Player": 2
+    },
+    {
+      "MoveNumber": 3,
+      "MoveNotation": "b2b4",
+      "Timestamp": "2025-10-23T22:11:09.2438279+07:00",
+      "Player": 1
+    },
+    {
+      "MoveNumber": 4,
+      "MoveNotation": "b2b5",
+      "Timestamp": "2025-10-23T22:11:09.4532988+07:00",
+      "Player": 2
+    },
+    {
+      "MoveNumber": 5,
+      "MoveNotation": "c4",
+      "Timestamp": "2025-10-23T22:11:09.6443963+07:00",
+      "Player": 1
+    }
+  ],
+  "savedAt": "2025-10-23T15:11:09.6469001Z"
+}

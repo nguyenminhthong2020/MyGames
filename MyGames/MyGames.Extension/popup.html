@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>MyGames Listener</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 10px;
+        width: 200px;
+      }
+      h4 {
+        margin-top: 0;
+      }
+      button {
+        margin-top: 10px;
+      }
+      textarea {
+        width: 100%;
+        height: 80px;
+        margin-top: 8px;
+        box-sizing: border-box;
+        font-family: monospace;
+      }
+      label {
+        display: block;
+        margin-top: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <h4>MyGames Listener</h4>
+
+    <label>
+      <input type="radio" name="side" value="white" checked />
+      I'm White
+    </label>
+
+    <label>
+      <input type="radio" name="side" value="black" />
+      I'm Black
+    </label>
+
+    <h5>Optional: Existing moves (UCI, comma-separated)</h5>
+    <small
+      >Provide full UCI moves in order (white, black, white, ...). Example
+      below:</small
+    >
+    <textarea id="moves" placeholder="a2a4, a7a5, b2b4, b7b5, c2c4">
+a2a4,a7a5,b2b4,b7b5,c2c4</textarea
+    >
+
+    <br />
+    <button id="start">Start Game</button>
+
+    <!-- external popup script (must be popup.js) -->
+    <script src="popup.js"></script>
+  </body>
+</html>

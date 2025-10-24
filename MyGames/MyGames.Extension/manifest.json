@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "MyGames.Extension.Test",
+  "version": "1.0",
+  "description": "Fake chess moves to test MyGames.Desktop API",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:54546/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*/*",
+        "http://*/*"
+      ],
+      "js": [
+        "content-script.js"
+      ]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/app.png",
+      "48": "icons/app.png",
+      "128": "icons/app.png"
+    }
+  }
+}

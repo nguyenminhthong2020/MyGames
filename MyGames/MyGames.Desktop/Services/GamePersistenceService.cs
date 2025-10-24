@@ -31,11 +31,11 @@ namespace MyGames.Desktop.Services
                 string json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
                 string path = Path.Combine(_saveDir, $"{gameId}.json");
                 await File.WriteAllTextAsync(path, json);
-                _logger.Information("Game {GameId} saved to {Path}", gameId, path);
+                _logger.Information($"Game {gameId} saved to {path}");
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "Failed to save game {GameId}", gameId);
+                _logger.Error($"{ex}: Failed to save game {gameId}");
             }
         }
 
@@ -44,7 +44,7 @@ namespace MyGames.Desktop.Services
             string path = Path.Combine(_saveDir, $"{gameId}.json");
             if (!File.Exists(path))
             {
-                _logger.Warning("Save file not found for {GameId}", gameId);
+                _logger.Warning($"Save file not found for {gameId}");
                 return null;
             }
 
@@ -67,12 +67,12 @@ namespace MyGames.Desktop.Services
                     });
                 }
 
-                _logger.Information("Game {GameId} loaded from {Path}", gameId, path);
+                _logger.Information($"Game {gameId} loaded from {path}");
                 return (side, moves);
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "Failed to load game {GameId}", gameId);
+                _logger.Error($"{ex}: Failed to load game {gameId}");
                 return null;
             }
         }

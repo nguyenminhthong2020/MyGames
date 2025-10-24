@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "MyGames.Extension",
+  "version": "1.0",
+  "description": "Send opponent moves from chess websites to MyGames.Desktop",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.chess.com/*",
+    "https://www.researchplaychess.com/*",
+    "http://127.0.0.1:54546/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.chess.com/*",
+        "https://researchplaychess.com/*",
+        "https://www.researchplaychess.com/*"
+      ],
+      "js": ["content-script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/app.png",
+      "48": "icons/app.png",
+      "128": "icons/app.png"
+    }
+  }
+}

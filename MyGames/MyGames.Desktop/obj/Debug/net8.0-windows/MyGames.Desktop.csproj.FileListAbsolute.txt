@@ -10,6 +10,7 @@ D:\2025\individual\github\MyGames\MyGames\MyGames.Desktop\bin\Debug\net8.0-windo
 D:\2025\individual\github\MyGames\MyGames\MyGames.Desktop\bin\Debug\net8.0-windows\Assets\Svg\w_pawn.svg
 D:\2025\individual\github\MyGames\MyGames\MyGames.Desktop\bin\Debug\net8.0-windows\Assets\Svg\w_queen.svg
 D:\2025\individual\github\MyGames\MyGames\MyGames.Desktop\bin\Debug\net8.0-windows\Assets\Svg\w_rook.svg
+D:\2025\individual\github\MyGames\MyGames\MyGames.Desktop\bin\Debug\net8.0-windows\DeployShortcut.ps1
 D:\2025\individual\github\MyGames\MyGames\MyGames.Desktop\bin\Debug\net8.0-windows\MyGames.Desktop.exe
 D:\2025\individual\github\MyGames\MyGames\MyGames.Desktop\bin\Debug\net8.0-windows\appsettings.json
 D:\2025\individual\github\MyGames\MyGames\MyGames.Desktop\bin\Debug\net8.0-windows\move.wav

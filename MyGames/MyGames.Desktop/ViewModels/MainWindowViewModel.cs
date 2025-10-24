@@ -1,11 +1,14 @@
-﻿using MyGames.Desktop.Controls;
+﻿using Microsoft.Extensions.DependencyInjection;
+using MyGames.Desktop.Controls;
 using MyGames.Desktop.Helpers;
 using MyGames.Desktop.Logs;
 using MyGames.Desktop.Models;
 using MyGames.Desktop.Services;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using static MyGames.Desktop.Models.ChessPiece;
@@ -165,6 +168,104 @@ namespace MyGames.Desktop.ViewModels
 
         public bool IsBlackPlayer => PlayerColorProperty == PlayerColor.Black;
 
+        private double _whiteAccuracy = 100;
+        public double WhiteAccuracy
+        {
+            get => _whiteAccuracy;
+            set { _whiteAccuracy = value; OnPropertyChanged(); }
+        }
+
+        private double _blackAccuracy = 100;
+        public double BlackAccuracy
+        {
+            get => _blackAccuracy;
+            set { _blackAccuracy = value; OnPropertyChanged(); }
+        }
+        //private readonly List<double> _whiteLosses = new();
+        //private readonly List<double> _blackLosses = new();
+        private readonly AccuracyTracker _accuracyTracker;
+        private async Task EvaluateMoveAccuracyAsync(string movesUci, PlayerColor mover)
+        {
+            try
+            {
+                //// 1. Đánh giá trước khi đi
+                //var evalBefore = await _stockfishService.GetEvaluationAsync(movesUci);
+                ////int eval1 = ParseEvalCp(evalBefore);
+
+                //// 2. Đánh giá sau khi đi
+                //var evalAfter = await _stockfishService.GetEvaluationAsync(movesUci);
+                ////int eval2 = ParseEvalCp(evalAfter);
+
+
+                //string evalBeforeStr = await _stockfishService.EnqueueCommandAsync(new StockfishJob
+                //{
+                //    Type = StockfishJobType.Evaluation,
+                //    MovesOrFen = movesUci,
+                //    Depth = 15
+                //});
+
+                //string evalAfterStr = await _stockfishService.EnqueueCommandAsync(new StockfishJob
+                //{
+                //    Type = StockfishJobType.Evaluation,
+                //    MovesOrFen = movesUci,
+                //    Depth = 15
+                //});
+
+                var evalBeforeStr = await _stockfishService.EnqueueCommandAsync(new StockfishJob
+                {
+                    Type = StockfishJobType.Evaluation,
+                    MovesOrFen = movesUci,
+                    Depth = 15
+                });
+                var evalAfterStr = await _stockfishService.EnqueueCommandAsync(new StockfishJob
+                {
+                    Type = StockfishJobType.Evaluation,
+                    MovesOrFen = movesUci,
+                    Depth = 15
+                });
+
+                double evalBefore = double.TryParse(evalBeforeStr, out var v1) ? v1 : 0;
+                double evalAfter = double.TryParse(evalAfterStr, out var v2) ? v2 : 0;
+
+
+                // 3. Sai lệch (centipawn)
+                //int loss = Math.Abs(eval1 - eval2);
+                //double cpLoss = Math.Abs((evalBefore ?? 0) - (evalAfter ?? 0)) * 100;
+                double cpLoss = Math.Abs(evalBefore - evalAfter) * 100;
+
+                // 4. Lưu vào danh sách theo phe
+                if (mover == PlayerColor.White)
+                    _accuracyTracker.AddMove("white", cpLoss);
+                else
+                    _accuracyTracker.AddMove("black", cpLoss);
+
+                // 5. Cập nhật accuracy tổng
+                WhiteAccuracy = _accuracyTracker.GetAverageAccuracy("white");
+                BlackAccuracy = _accuracyTracker.GetAverageAccuracy("black");
+            }
+            catch (Exception ex)
+            {
+                _logger.Warn($"EvaluateMoveAccuracyAsync error: {ex.Message}");
+            }
+        }
+        private int ParseEvalCp(string stockfishOutput)
+        {
+            // Tìm giá trị "cp xxx" trong output của Stockfish
+            var match = System.Text.RegularExpressions.Regex.Match(stockfishOutput, @"cp (-?\d+)");
+            if (match.Success && int.TryParse(match.Groups[1].Value, out int cp))
+                return cp;
+            return 0;
+        }
+
+        private double ComputeAccuracy(List<double> losses)
+        {
+            if (losses.Count == 0) return 100;
+            double avg = losses.Average();
+            double acc = 100 - 3.5 * Math.Sqrt(avg);
+            return Math.Max(0, Math.Min(100, acc));
+        }
+
+
         /// <summary>
         /// Xử lý khi đối thủ đi (Extension gửi thông tin, hoặc người dùng tự kéo)
         /// </summary>
@@ -208,6 +309,9 @@ namespace MyGames.Desktop.ViewModels
             {
                 PlayMoveSound();
             }
+
+            var movesUci = string.Join(" ", Moves.Select(m => m.MoveNotation));
+            _ = EvaluateMoveAccuracyAsync(movesUci, opponentColor);
 
             // ✅ Kiểm tra kết thúc ván
             // Nếu sau nước đi đối thủ ván kết thúc => xử lý kết quả và dừng ở đây
@@ -297,7 +401,25 @@ namespace MyGames.Desktop.ViewModels
 
                 var movesUci = string.Join(" ", Moves.Select(m => m.MoveNotation));
                 // Lấy output (dòng chứa "bestmove ...")
-                string stockfishOutput = await _stockfishService.GetBestMoveAsync(movesUci, depth: 12);
+                //string stockfishOutput = await _stockfishService.GetBestMoveAsync(movesUci, depth: 12);
+
+                //var tcs = new TaskCompletionSource<string>();
+                //_stockfishService.EnqueueCommand(new StockfishJob
+                //{
+                //    Type = StockfishJobType.BestMove,
+                //    MovesOrFen = movesUci,
+                //    Depth = 12,
+                //    OnCompleted = (output) => tcs.TrySetResult(output)
+                //});
+                //string stockfishOutput = await tcs.Task;
+                string stockfishOutput = await _stockfishService.EnqueueCommandAsync(new StockfishJob
+                {
+                    Type = StockfishJobType.BestMove,
+                    MovesOrFen = movesUci,
+                    Depth = 12,
+                    TimeoutMs = 10000
+                });
+
 
                 // Parse ra UCI move (ví dụ "e2e4" hoặc "e7e8q")
                 string bestMoveUci = ParseBestMoveFromStockfishOutput(stockfishOutput);
@@ -386,13 +508,6 @@ namespace MyGames.Desktop.ViewModels
             }
         }
 
-        // wrapper to call stockfish GetBestMoveAsync safely (we keep implementation call unchanged)
-        private async Task<string> _stockfish_service_guard(string movesUci)
-        {
-            // reuse existing _stockfishService logic:
-            return await _stockfishService.GetBestMoveAsync(movesUci, depth: 12);
-        }
-
         /// <summary>
         /// Parse dòng output của Stockfish để lấy UCI bestmove.
         /// Hỗ trợ các dạng:
@@ -439,6 +554,12 @@ namespace MyGames.Desktop.ViewModels
             get => _isAutoPlayEnabled;
             set { _isAutoPlayEnabled = value; OnPropertyChanged(); }
         }
+        private bool _isOpponentAutoPlayEnabled = false;
+        public bool IsOpponentAutoPlayEnabled
+        {
+            get => _isOpponentAutoPlayEnabled;
+            set { _isOpponentAutoPlayEnabled = value; OnPropertyChanged(); }
+        }
 
         // --- Commands ---
         public ICommand ResetGameCommand { get; }
@@ -450,10 +571,16 @@ namespace MyGames.Desktop.ViewModels
         private readonly AppSettings _appSettings;
 
         // --- Constructor (DI) ---
-        public MainWindowViewModel(StockfishService stockfishService, LoggerService logger, AppSettings appSettings)
+        public MainWindowViewModel(
+        StockfishService stockfishService, 
+        LoggerService logger, 
+        AppSettings appSettings,
+        AccuracyTracker accuracyTracker
+            )
         {
             _stockfishService = stockfishService;
             _logger = logger;
+            _accuracyTracker = accuracyTracker;
 
             Board = new ChessBoardState();
 
@@ -589,6 +716,8 @@ namespace MyGames.Desktop.ViewModels
             // Sau người chơi đi, để logic ở MainWindow đặt IsPlayerTurn=false
             // và VM gọi engine phân tích tiếp theo:
             var movesUci = string.Join(" ", Moves.Select(m => m.MoveNotation));
+
+            _ = EvaluateMoveAccuracyAsync(movesUci, player);
             _ = AnalyzeBoardAsync(movesUci: movesUci, depth: 12);
 
             return true;
@@ -690,8 +819,29 @@ namespace MyGames.Desktop.ViewModels
                 }
 
                 // 🧠 Gọi Stockfish
-                string result = await _stockfishService.GetBestMoveAsync(
-                    inputForEngine, depth, timeoutMs: 7000, null);
+                //string result = await _stockfishService.GetBestMoveAsync(
+                //    inputForEngine, depth, timeoutMs: 7000, null);
+
+                //var tcs = new TaskCompletionSource<string>();
+                //_stockfishService.EnqueueCommand(new StockfishJob
+                //{
+                //    Type = StockfishJobType.BestMove,
+                //    MovesOrFen = inputForEngine,
+                //    Depth = depth,
+                //    TimeoutMs = 7000,
+                //    OnCompleted = (output) => tcs.TrySetResult(output)
+                //});
+                //string result = await tcs.Task;
+
+                // Lấy output (dòng chứa "bestmove ...")
+                string result = await _stockfishService.EnqueueCommandAsync(new StockfishJob
+                {
+                    Type = StockfishJobType.BestMove,
+                    MovesOrFen = inputForEngine,
+                    Depth = depth,
+                    TimeoutMs = 7000
+                });
+
 
                 // ⚙️ Xử lý kết quả
                 if (string.IsNullOrWhiteSpace(result))
@@ -813,8 +963,27 @@ namespace MyGames.Desktop.ViewModels
             }
         }
 
-        private void ResetGame()
+        internal void ResetGame()
         {
+            double myAccurancy = IsPlayerWhite ? WhiteAccuracy : BlackAccuracy;
+            double opponentAccurancy = IsPlayerWhite ? BlackAccuracy : WhiteAccuracy;
+            
+            string message = $"Kết thúc ván cờ với Độ chính xác của Tôi là {myAccurancy}%, Đối thủ: {opponentAccurancy}%";
+            _logger.Info(message);
+
+            // Lấy đường dẫn thư mục gốc của project (nơi chứa MainWindow.xaml.cs)
+            string projectRoot = AppDomain.CurrentDomain.BaseDirectory;
+            string dataFolder = Path.Combine(projectRoot, @"..\..\..\Data");
+            string dataFile = Path.Combine(dataFolder, "Data.txt");
+
+            // Đảm bảo thư mục tồn tại
+            Directory.CreateDirectory(dataFolder);
+
+            // Ghi thêm dòng mới vào cuối file
+            string logLine = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}";
+            File.AppendAllText(dataFile, logLine + Environment.NewLine, Encoding.UTF8);
+
+
             // 🧩 Reset lựa chọn màu người chơi trong ComboBox
             _selectedColorIndex = 0;
             SelectedColorIndex = 0;
@@ -833,6 +1002,11 @@ namespace MyGames.Desktop.ViewModels
             GameStatus = "Ván mới đã khởi động. Hãy chọn màu quân cờ.";
             IsPlayerTurn = false; // ⚠️ chưa chọn màu thì chưa đến lượt người chơi
 
+            // Reset Độ chính xác
+            _accuracyTracker.Reset();
+            WhiteAccuracy = 100;
+            BlackAccuracy = 100;
+
             // 🧩 Reset trạng thái bàn cờ
             Board.Reset();
             OnPropertyChanged(nameof(Board)); // đảm bảo UI cập nhật lại bàn cờ
@@ -840,7 +1014,10 @@ namespace MyGames.Desktop.ViewModels
             Application.Current.Dispatcher.Invoke(() =>
             {
                 if (Application.Current.MainWindow is MainWindow win)
-                    win.ChessBoard.ResetBoardDisplay();
+                {
+                    // win.ChessBoard.ResetBoardDisplay();
+                    win.ChessBoard.RefreshBoard(clearHighlights: true);
+                }
             });
         }
 
@@ -896,24 +1073,6 @@ namespace MyGames.Desktop.ViewModels
         {
             if (Board.IsGameOver)
                 return false;
-
-            //bool success = Board.TryMakeMove(from, to, promotion ?? 'q');
-
-            //if (success)
-            //{
-            //    if (Board.IsGameOver)
-            //    {
-            //        StatusMessage = Board.GameResult switch
-            //        {
-            //            GameResult.WhiteWins => "✅ Trắng thắng!",
-            //            GameResult.BlackWins => "✅ Đen thắng!",
-            //            _ => "🤝 Hòa!"
-            //        };
-            //    }
-            //}
-
-            //return success;
-
 
             char promo = promotion ?? 'q';
 

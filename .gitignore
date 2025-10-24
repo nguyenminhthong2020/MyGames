@@ -20,6 +20,7 @@
 # Keep bin folders, but ignore nested temp inside them
 **/bin/Debug*/temp/
 **/bin/Release*/temp/
+**/Logs/
 
 # Ignore NuGet packages
 **/packages/

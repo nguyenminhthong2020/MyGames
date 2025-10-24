@@ -1,6 +1,4 @@
-﻿using MyGames.Desktop.Helpers;
-using MyGames.Desktop.ViewModels;
-using static MyGames.Desktop.Models.ChessPiece;
+﻿using static MyGames.Desktop.Models.ChessPiece;
 
 namespace MyGames.Desktop.Models
 {
@@ -243,89 +241,6 @@ namespace MyGames.Desktop.Models
             EvaluateGameEnd();
 
             return true;
-        }
-
-        /// <summary>
-        /// Kiểm tra nước đi có hợp lệ hay không (chỉ cơ bản, chưa tính chiếu)
-        /// </summary>
-        public bool IsMoveLegalOld(string from, string to)
-        {
-            if (!TryParseSquare(from, out int fr, out int fc)) return false;
-            if (!TryParseSquare(to, out int tr, out int tc)) return false;
-
-            var piece = _board[fr, fc];
-            if (piece == null) return false;
-            if (piece.Value.Color != CurrentTurn) return false;
-
-            var target = _board[tr, tc];
-            if (target != null && target.Value.Color == piece.Value.Color) return false;
-
-            int dr = tr - fr;
-            int dc = tc - fc;
-
-            switch (piece.Value.Type)
-            {
-                case PieceType.Pawn:
-                    int dir = piece.Value.Color == PieceColor.White ? -1 : 1;
-                    int startRow = piece.Value.Color == PieceColor.White ? 6 : 1;
-
-                    // Bước thường
-                    if (dc == 0 && target == null && dr == dir)
-                        return true;
-
-                    // Nước đi 2 ô từ hàng xuất phát
-                    if (dc == 0 && target == null && fr == startRow && dr == 2 * dir && _board[fr + dir, fc] == null)
-                        return true;
-
-                    // Ăn chéo
-                    if (Math.Abs(dc) == 1 && dr == dir && target != null && target.Value.Color != piece.Value.Color)
-                        return true;
-
-                    // En passant: đơn giản (chưa tính chính xác)
-                    if (Math.Abs(dc) == 1 && dr == dir && target == null && EnPassantTarget == to)
-                        return true;
-
-                    return false;
-
-                case PieceType.Rook:
-                    if (fr != tr && fc != tc) return false;
-                    return PathClear(fr, fc, tr, tc);
-
-                case PieceType.Bishop:
-                    if (Math.Abs(fr - tr) != Math.Abs(fc - tc)) return false;
-                    return PathClear(fr, fc, tr, tc);
-
-                case PieceType.Queen:
-                    if (fr == tr || fc == tc || Math.Abs(fr - tr) == Math.Abs(fc - tc))
-                        return PathClear(fr, fc, tr, tc);
-                    return false;
-
-                case PieceType.Knight:
-                    return (Math.Abs(fr - tr) == 2 && Math.Abs(fc - tc) == 1) ||
-                           (Math.Abs(fr - tr) == 1 && Math.Abs(fc - tc) == 2);
-
-                case PieceType.King:
-                    if (Math.Abs(fr - tr) <= 1 && Math.Abs(fc - tc) <= 1)
-                        return true;
-                    // Castling (giản lược, chưa kiểm tra chiếu)
-                    if (piece.Value.Color == PieceColor.White && fr == 0 && fc == 4)
-                    {
-                        if (tc == 6 && WhiteCanCastleKingside && _board[0, 5] == null && _board[0, 6] == null)
-                            return true;
-                        if (tc == 2 && WhiteCanCastleQueenside && _board[0, 1] == null && _board[0, 2] == null && _board[0, 3] == null)
-                            return true;
-                    }
-                    if (piece.Value.Color == PieceColor.Black && fr == 7 && fc == 4)
-                    {
-                        if (tc == 6 && BlackCanCastleKingside && _board[7, 5] == null && _board[7, 6] == null)
-                            return true;
-                        if (tc == 2 && BlackCanCastleQueenside && _board[7, 1] == null && _board[7, 2] == null && _board[7, 3] == null)
-                            return true;
-                    }
-                    return false;
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -719,12 +634,6 @@ namespace MyGames.Desktop.Models
                                 // ✅ Bỏ kiểm tra vua bị chiếu, chỉ cần có ít nhất 1 nước hợp lệ là OK
                                 return true;
                             }
-
-                            //// simulate
-                            //var clone = CloneInternal();
-                            //clone.ApplyMoveOnClone(r, c, tr, tc, 'q');
-                            //if (!clone.IsKingInCheck(opponent))
-                            //    return true;
                         }
                     }
                 }
@@ -856,18 +765,6 @@ namespace MyGames.Desktop.Models
         /// </summary>
         public static bool TryParseSquare(string square, out int row, out int col)
         {
-            //row = col = -1;
-            //if (string.IsNullOrWhiteSpace(square) || square.Length != 2)
-            //    return false;
-
-            //col = square[0] - 'a';
-            //row = square[1] - '1';
-            //if (row < 0 || row > 7 || col < 0 || col > 7)
-            //    return false;
-
-            //row = 7 - row;
-            //return true;
-
             row = col = -1;
             if (string.IsNullOrWhiteSpace(square) || square.Length < 2) return false;
             char f = char.ToLower(square[0]);

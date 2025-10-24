@@ -14,6 +14,7 @@ public partial class App : Application
 {
     private IHost? _host;
     public static IServiceProvider ServiceProvider { get; private set; }
+    public static bool AppIsReady { get; private set; }
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -41,6 +42,8 @@ public partial class App : Application
                 // register hosted service with kestrel url built from settings
                 //services.AddHostedService<HttpListenerService>();
 
+                services.AddSingleton<AccuracyTracker>();
+
                 services.AddSingleton<GamePersistenceService>();
                 services.AddSingleton<ChessGameService>();
                 services.AddSingleton<StockfishService>();
@@ -63,6 +66,8 @@ public partial class App : Application
 
         var win = _host.Services.GetRequiredService<MainWindow>();
         win.Show();
+
+        AppIsReady = true;
     }
 
     protected override async void OnExit(ExitEventArgs e)

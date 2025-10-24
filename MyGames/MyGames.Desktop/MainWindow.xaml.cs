@@ -1,11 +1,11 @@
 ﻿using ChessApp.Views;
+using Microsoft.Extensions.DependencyInjection;
 using MyGames.Desktop.Controls;
-using MyGames.Desktop.Helpers;
+using MyGames.Desktop.Logs;
 using MyGames.Desktop.Models;
 using MyGames.Desktop.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using static MyGames.Desktop.Models.ChessPiece;
 
 namespace MyGames.Desktop
@@ -125,16 +125,16 @@ namespace MyGames.Desktop
                     ChessBoard.ClearSelectionHighlight();
                 }
             }
-            else
+            else  
             {
-                // Giả lập đối thủ đi (vì chưa có Extension)
+                // Xử lý khi đối thủ đi (vì chưa có Extension)
                 _vm.ProcessOpponentMove(e.From, e.To);
 
                 ChessBoard.RefreshBoard();
                 ChessBoard.HighlightLastMove(e.From, e.To);
 
                 // Gọi AI tính và tự đi cho bạn
-                if(_vm.IsAutoPlayEnabled)
+                if (_vm.IsAutoPlayEnabled)
                 {
                     await _vm.AutoPlayBestMoveForPlayer(ChessBoard);
                 }
@@ -172,6 +172,37 @@ namespace MyGames.Desktop
                 _vm.TryMakeMove(e.From, e.To, promotionChar);
             }
         }
+
+        //private void CheckBox_Checked(object sender, RoutedEventArgs e)
+        //{
+
+        //}
+
+        public void PerformOpponentMove(string from, string to)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                var _logger = App.ServiceProvider.GetRequiredService<LoggerService>();
+                try
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        if (Application.Current.MainWindow is MainWindow win)
+                        {
+                            _vm.Board.TryMakeMove(from, to, isOpponent: true);
+                            win.ChessBoard.RefreshBoard();
+                            //win.ChessBoard.HighlightLastMove(from, to);
+                        }
+                    });
+                    _logger.Info($"Opponent moved {from}->{to}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error($"Error performing opponent move {from}->{to}: {ex.Message}");
+                }
+            });
+        }
+
 
     }
 }

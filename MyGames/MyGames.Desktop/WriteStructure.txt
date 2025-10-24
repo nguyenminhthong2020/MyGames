@@ -1,0 +1,29 @@
+Paste script này vào Powershell, để vẽ cấu trúc project:
+
+function Show-Tree($path, $prefix = "") {
+    $items = Get-ChildItem $path -Force | Where-Object {
+        $_.Name -notin @("bin", "obj", ".vs", ".git") -and $_.Name -notlike "node_modules" -and $_.Name -notlike "*.user"
+    }
+
+    $count = $items.Count
+    for ($i = 0; $i -lt $count; $i++) {
+        $item = $items[$i]
+        $isLast = ($i -eq $count - 1)
+
+        if ($isLast) {
+            $connector = "└── "
+            $newPrefix = "$prefix    "
+        } else {
+            $connector = "├── "
+            $newPrefix = "$prefix│   "
+        }
+
+        Write-Output "$prefix$connector$($item.Name)"
+
+        if ($item.PSIsContainer) {
+            Show-Tree $item.FullName $newPrefix
+        }
+    }
+}
+
+Show-Tree (Get-Location) | Out-File "ProjectStructure.txt" -Encoding utf8

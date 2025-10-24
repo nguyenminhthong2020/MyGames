@@ -1,0 +1,19 @@
+{
+  "gameId": "d2e63310-7f65-495e-a6b1-b89d173d1add",
+  "side": "Black",
+  "moves": [
+    {
+      "MoveNumber": 1,
+      "MoveNotation": "a2a4",
+      "Timestamp": "2025-10-24T11:20:39.4039259+07:00",
+      "Player": 1
+    },
+    {
+      "MoveNumber": 2,
+      "MoveNotation": "a2a5",
+      "Timestamp": "2025-10-24T11:20:51.7561103+07:00",
+      "Player": 2
+    }
+  ],
+  "savedAt": "2025-10-24T04:21:01.706342Z"
+}

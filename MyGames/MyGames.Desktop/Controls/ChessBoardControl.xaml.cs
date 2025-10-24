@@ -5,7 +5,6 @@ using SharpVectors.Converters;
 using SharpVectors.Renderers.Wpf;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -447,10 +446,20 @@ namespace MyGames.Desktop.Controls
             }
         }
 
+        private void RestoreOriginalSquareColor(string coord)
+        {
+            if (string.IsNullOrWhiteSpace(coord) || !_cells.TryGetValue(coord, out var btn)) return;
+
+            int file = coord[0] - 'a';   // cột: a..h
+            int rank = coord[1] - '1';   // hàng: 1..8 → 0..7
+
+            bool isLight = ((file + rank) % 2 == 0);
+            btn.Background = !isLight ? _lightSquareBrush : _darkSquareBrush;
+        }
         /// <summary>
         /// Cập nhật UI từ state (gọi khi board thay đổi)
         /// </summary>
-        public void RefreshBoard()
+        public void RefreshBoard(bool clearHighlights = false)
         {
             if (_boardState == null) return;
 
@@ -512,7 +521,7 @@ namespace MyGames.Desktop.Controls
 
                 //btn.Background = ((file + rank) % 2 == 0) ? Brushes.Beige : Brushes.SaddleBrown;
                 bool isLight = (file + rank) % 2 == 0;
-                btn.Background = isLight ? _lightSquareBrush : _darkSquareBrush;
+                // btn.Background = isLight ? _lightSquareBrush : _darkSquareBrush;
                 // Nếu có quân thì hiện pointer khi hover
                 btn.Cursor = piece.HasValue ? Cursors.Hand : Cursors.Arrow;
 
@@ -533,8 +542,21 @@ namespace MyGames.Desktop.Controls
             // cập nhật lại layout hiển thị theo IsBlackPlayer
             ApplyBoardOrientation();
 
+            if (clearHighlights)
+            {
+                RestoreOriginalSquareColor(_lastFrom);
+                RestoreOriginalSquareColor(_lastTo);
+
+                _selectedButton = null;
+                // reset lượt
+                _currentTurn = PlayerColor.None;
+                _isPlayerColorChosen = false;
+                _lastFrom = null;
+                _lastTo = null;
+            }
+
             // apply last-move highlight if present
-            if (!string.IsNullOrEmpty(_lastFrom) && !string.IsNullOrEmpty(_lastTo))
+            if (!string.IsNullOrEmpty(_lastFrom) && !string.IsNullOrEmpty(_lastTo) && !clearHighlights)
             {
                 HighlightLastMove(_lastFrom!, _lastTo!);
             }
@@ -936,7 +958,7 @@ namespace MyGames.Desktop.Controls
             _currentTurn = PlayerColor.None;
             _isPlayerColorChosen = false;
 
-            RefreshBoard();        // vẽ lại giao diện
+            RefreshBoard(clearHighlights: true);        // vẽ lại giao diện
         }
     }
 

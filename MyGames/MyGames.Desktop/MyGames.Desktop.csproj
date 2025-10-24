@@ -120,9 +120,16 @@
     <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="DeployShortcut.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="move.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="@echo off&#xD;&#xA;powershell -ExecutionPolicy Bypass -NoProfile -File &quot;$(ProjectDir)DeployShortcut.ps1&quot; -Configuration &quot;$(ConfigurationName)&quot;&#xD;&#xA;" />
+  </Target>
 
 </Project>
