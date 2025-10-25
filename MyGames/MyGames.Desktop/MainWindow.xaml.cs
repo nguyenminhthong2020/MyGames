@@ -4,6 +4,8 @@ using MyGames.Desktop.Controls;
 using MyGames.Desktop.Logs;
 using MyGames.Desktop.Models;
 using MyGames.Desktop.ViewModels;
+using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using static MyGames.Desktop.Models.ChessPiece;
@@ -203,6 +205,52 @@ namespace MyGames.Desktop
             });
         }
 
+        private string GetProjectDirectory()
+        {
+            // Lấy đường dẫn của file .csproj (luôn đúng dù chạy từ bin)
+            string assemblyLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            string projectFilePath = System.IO.Path.Combine(
+                System.IO.Path.GetDirectoryName(assemblyLocation)!,
+                "..", "..", "..", "MyGames.Desktop.csproj");
+
+            projectFilePath = System.IO.Path.GetFullPath(projectFilePath); // Chuẩn hóa
+
+            if (!System.IO.File.Exists(projectFilePath))
+                throw new FileNotFoundException("Không tìm thấy file .csproj", projectFilePath);
+
+            return System.IO.Path.GetDirectoryName(projectFilePath)!;
+        }
+        private void OpenDataFile_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string projectDir = GetProjectDirectory();
+
+                // Tạo đường dẫn: /Data/Data_YYYY_MM_DD.txt
+                string today = DateTime.Today.ToString("yyyy_MM_dd");
+                string filePath = Path.Combine(projectDir, "Data", $"Data_{today}.txt");
+
+                if (!File.Exists(filePath))
+                {
+                    return;
+                }
+
+                // Mở file bằng ứng dụng mặc định (Notepad, v.v.)
+                var process = new Process
+                {
+                    StartInfo = new ProcessStartInfo(filePath)
+                    {
+                        UseShellExecute = true // Quan trọng: mở bằng app mặc định
+                    }
+                };
+                process.Start();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Không thể mở file dữ liệu:\n{ex.Message}",
+                                "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
 
     }
 }

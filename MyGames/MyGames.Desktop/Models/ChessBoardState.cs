@@ -75,6 +75,7 @@ namespace MyGames.Desktop.Models
         /// giữ trạng thái.
         /// </summary>
         private readonly ChessPiece?[,] _board = new ChessPiece?[8, 8];
+        public ChessPiece?[,] Board => _board;
 
         // =====================
         // Trạng thái ván chơi

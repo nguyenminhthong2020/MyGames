@@ -248,6 +248,84 @@ namespace MyGames.Desktop.ViewModels
                 _logger.Warn($"EvaluateMoveAccuracyAsync error: {ex.Message}");
             }
         }
+
+
+        #region Improve Accuracy
+        public int GetRemainingPiecesCount(PlayerColor PlayerColorProperty)
+        {
+            // Đếm số quân cờ trên bàn từ FEN hoặc movesUci (cần logic cụ thể để lấy số quân)
+            //return 30;  
+
+            int count = 0;
+            PieceColor targetColor = PlayerColorProperty == PlayerColor.White ? PieceColor.White : PieceColor.Black;
+            foreach (var piece in Board.Board)
+            {
+                if (piece.Value.Color == targetColor)
+                {
+                    count++;
+                }
+            }
+            return count;
+        }
+        public async Task EvaluateMoveAccuracyAsyncNew(string movesUci, PlayerColor mover)
+        {
+            try
+            {
+                var evalBeforeStr = await _stockfishService.EnqueueCommandAsync(new StockfishJob
+                {
+                    Type = StockfishJobType.Evaluation,
+                    MovesOrFen = movesUci,
+                    Depth = 15
+                });
+                var evalAfterStr = await _stockfishService.EnqueueCommandAsync(new StockfishJob
+                {
+                    Type = StockfishJobType.Evaluation,
+                    MovesOrFen = movesUci,
+                    Depth = 15
+                });
+
+                double evalBefore = double.TryParse(evalBeforeStr, out var v1) ? v1 : 0;
+                double evalAfter = double.TryParse(evalAfterStr, out var v2) ? v2 : 0;
+
+                // 3. Sai lệch (centipawn)
+                double cpLoss = Math.Abs(evalBefore - evalAfter) * 100;
+
+                // Điều chỉnh theo chế độ AutoPlay
+                if (IsAutoPlayEnabled)  // Nước đi do Stockfish tự động chơi
+                {
+                    int numPieces = GetRemainingPiecesCount(PlayerColorProperty);
+                    // Tính độ chính xác dựa trên sự giống với nước cờ tốt nhất và các yếu tố khác
+                    double accuracy = _accuracyTracker.CalculateAccuracyFromStockfish(cpLoss, evalBefore, evalAfter, numPieces);
+                    // Lưu vào Accuracy Tracker
+                    if (mover == PlayerColor.White)
+                        _accuracyTracker.AddMove("white", accuracy);
+                    else
+                        _accuracyTracker.AddMove("black", accuracy);
+                }
+                else  // Người chơi tự đi nước cờ
+                {
+                    // Tính độ chính xác từ sai lệch với Stockfish
+                    double accuracy = _accuracyTracker.CalculateAccuracyFromPlayerMove(cpLoss, evalBefore, evalAfter);
+                    // Lưu vào Accuracy Tracker
+                    if (mover == PlayerColor.White)
+                        _accuracyTracker.AddMove("white", accuracy);
+                    else
+                        _accuracyTracker.AddMove("black", accuracy);
+                }
+
+                // 5. Cập nhật accuracy tổng
+                WhiteAccuracy = _accuracyTracker.GetAverageAccuracy("white");
+                BlackAccuracy = _accuracyTracker.GetAverageAccuracy("black");
+            }
+            catch (Exception ex)
+            {
+                _logger.Warn($"EvaluateMoveAccuracyAsync error: {ex.Message}");
+            }
+        }
+        #endregion
+
+
+
         private int ParseEvalCp(string stockfishOutput)
         {
             // Tìm giá trị "cp xxx" trong output của Stockfish
@@ -546,6 +624,19 @@ namespace MyGames.Desktop.ViewModels
         {
             get => _isSoundEnabled;
             set { _isSoundEnabled = value; OnPropertyChanged(); }
+        }
+
+        private bool _hasDataLog = false;
+        public bool HasDataLog
+        {
+            get => _hasDataLog;
+            set { _hasDataLog = value; OnPropertyChanged(); }
+        }
+        private string _textInput = string.Empty;
+        public string TextInput
+        {
+            get => _textInput;
+            set { _textInput = value; OnPropertyChanged(); }
         }
 
         private bool _isAutoPlayEnabled = false;
@@ -967,22 +1058,36 @@ namespace MyGames.Desktop.ViewModels
         {
             double myAccurancy = IsPlayerWhite ? WhiteAccuracy : BlackAccuracy;
             double opponentAccurancy = IsPlayerWhite ? BlackAccuracy : WhiteAccuracy;
-            
-            string message = $"Kết thúc ván cờ với Độ chính xác của Tôi là {myAccurancy}%, Đối thủ: {opponentAccurancy}%";
+
+            var sb = new StringBuilder();
+            sb.AppendLine("----Kết quả ván cờ----");
+            sb.AppendLine($"1. Ghi chú: ");
+            sb.AppendLine(TextInput);
+            sb.AppendLine($"2. Độ chính xác của Tôi: {myAccurancy}%");
+            sb.AppendLine($"3. Độ chính xác của Đối thủ: {opponentAccurancy}%");
+            sb.AppendLine("----------------------");
+
+            string message = sb.ToString();
             _logger.Info(message);
 
-            // Lấy đường dẫn thư mục gốc của project (nơi chứa MainWindow.xaml.cs)
-            string projectRoot = AppDomain.CurrentDomain.BaseDirectory;
-            string dataFolder = Path.Combine(projectRoot, @"..\..\..\Data");
-            string dataFile = Path.Combine(dataFolder, "Data.txt");
+            if(HasDataLog)
+            {
+                DateTime now = DateTime.Now;
+                string date = now.ToString("yyyy_MM_dd");
+                string dateTime = now.ToString("yyyy-MM-dd HH:mm:ss");
 
-            // Đảm bảo thư mục tồn tại
-            Directory.CreateDirectory(dataFolder);
+                // Lấy đường dẫn thư mục gốc của project (nơi chứa MainWindow.xaml.cs)
+                string projectRoot = AppDomain.CurrentDomain.BaseDirectory;
+                string dataFolder = Path.Combine(projectRoot, @"..\..\..\Data");
+                string dataFile = Path.Combine(dataFolder, $"Data_{date}.txt");
 
-            // Ghi thêm dòng mới vào cuối file
-            string logLine = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}";
-            File.AppendAllText(dataFile, logLine + Environment.NewLine, Encoding.UTF8);
+                // Đảm bảo thư mục tồn tại
+                Directory.CreateDirectory(dataFolder);
 
+                // Ghi thêm dòng mới vào cuối file
+                string logLine = $"{dateTime}{Environment.NewLine}{message}";
+                File.AppendAllText(dataFile, logLine + Environment.NewLine, Encoding.UTF8);
+            }
 
             // 🧩 Reset lựa chọn màu người chơi trong ComboBox
             _selectedColorIndex = 0;
